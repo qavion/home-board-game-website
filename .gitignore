@@ -1,0 +1,30 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# macOS
+.DS_Store
+
+# Vite
+dist/
+
+# Serverless Framework
+.serverless/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfplan
+
+# 環境変数
+.env
+
+# エディタの設定ファイル
+.vscode/
+.idea/
+
+# その他の一時ファイル
+*.log
+*.tmp
+*.swp
