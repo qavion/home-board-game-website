@@ -35,7 +35,7 @@ npm install react-hook-form
 # 9. Serverless Framework のインストール
 npm install -g serverless
 
-# 10. サーバーレスプロジェクトの作成
+# 10. サーバーレスプロジェクトの作成 # TODO これ以降
 serverless create --template aws-python3 --path backend
 cd backend
 # serverless.yml ファイルを編集し、必要な設定を記述
