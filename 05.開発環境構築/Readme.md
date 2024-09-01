@@ -1,5 +1,76 @@
-# 開発環境構築:
+## 開発環境構築
 
-* AWSアカウントの準備: AWSアカウントを作成し、必要なサービスを有効化する。
-* Terraformによるインフラ構築: Terraformを使用して、AWSリソース（CloudFront、API Gateway、Lambda、DynamoDB、S3など）をコードで定義し、プロビジョニングする。
-* ローカル開発環境のセットアップ: ローカルマシンに開発に必要なソフトウェア（Node.js、npm、React CLIなど）をインストールし、開発環境を構築する。
+### ローカル環境の準備
+
+```sh
+# 1. Node.js のインストール
+# Node.js 公式サイトから LTS 版をダウンロードし、インストーラーの指示に従ってインストール
+# https://nodejs.org/ja/
+
+# 2. プロジェクトの作成
+npm create vite@latest my-bodogame-cafe --template react-ts
+# framework: React
+# variant: TypeScript + SWC
+cd my-bodogame-cafe
+
+# 3. プロジェクトの初期設定
+npm install
+
+# 4. 開発サーバーの起動
+npm run dev
+
+# 5. ESLint と Prettier の設定
+npm install -D eslint prettier eslint-config-prettier eslint-plugin-prettier
+# .eslintrc.json と .prettierrc.json ファイルをプロジェクトルートに作成し、設定を記述
+
+# 6. Material-UI のインストール
+npm install @mui/material @emotion/react @emotion/styled
+
+# 7. React Router のインストール
+npm install react-router-dom
+
+# 8. React Hook Form のインストール
+npm install react-hook-form
+
+# 9. Serverless Framework のインストール
+npm install -g serverless
+
+# 10. サーバーレスプロジェクトの作成
+serverless create --template aws-python3 --path backend
+cd backend
+# serverless.yml ファイルを編集し、必要な設定を記述
+
+# 11. ローカル DynamoDB のセットアップ
+# Serverless Framework プラグイン (例: serverless-dynamodb-local) をインストールし、設定
+npm install --save-dev serverless-dynamodb-local
+# serverless.yml にプラグインと DynamoDB の設定を追加
+
+# 12. Terraform のインストール
+# Terraform 公式サイトからダウンロードし、インストール
+# https://www.terraform.io/downloads
+
+# 13. Visual Studio Code のインストールと設定
+# Visual Studio Code 公式サイトからダウンロードし、インストール
+# https://code.visualstudio.com/
+# 必要に応じて、ESLint、Prettier、TypeScript などの拡張機能をインストール
+
+# 14. Git の初期化
+git init # このプロジェクトではこのリポジトリをそのまま利用するため不要
+```
+
+### AWS環境の準備
+
+```sh
+# 1. AWS アカウントの作成
+# AWS 公式サイトにてアカウントを作成し、必要なサービス (IAM, S3, CloudFront, API Gateway, Lambda, DynamoDB, Route 53 など) を有効化
+# https://aws.amazon.com/jp/
+
+# 2. Terraform によるインフラ構築
+# Terraform の設定ファイルを記述し、AWS リソースを作成
+# terraform init
+# terraform plan
+# terraform apply
+
+# 3. 独自ドメインの設定
+# Route 53 で独自ドメインを登録し、CloudFront に紐付け
+```
