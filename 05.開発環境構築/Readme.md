@@ -25,7 +25,7 @@ npm run dev
 
 # 5. ESLint と Prettier の設定
 npm install -D eslint prettier eslint-config-prettier eslint-plugin-prettier
-# .eslintrc.json と .prettierrc.json ファイルをプロジェクトルートに作成し、設定を記述
+# .eslint.config.json と .prettierrc.json ファイルをプロジェクトルートに作成し、設定を記述
 
 # 6. Material-UI のインストール
 npm install @mui/material @emotion/react @emotion/styled
@@ -41,6 +41,13 @@ npm install react-hook-form
 # [https://code.visualstudio.com/](https://code.visualstudio.com/)
 # 必要に応じて、ESLint、Prettier、TypeScript などの拡張機能をインストール
 ```
+
+### HowToUse
+
+public/images に画像配置
+npm i --save-dev @types/node
+process.env
+npm install @mui/icons-material
 
 ## バックエンド環境構築
 
