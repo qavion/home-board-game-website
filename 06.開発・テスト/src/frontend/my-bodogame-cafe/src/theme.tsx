@@ -1,7 +1,12 @@
-import { createTheme, Theme } from '@mui/material/styles';
+import createTheme from '@mui/material/styles/createTheme';
 
-interface CustomTheme extends Theme {
-  icons: Record<string, string>;
+declare module '@mui/material/styles' {
+  interface Theme {
+    icons: Record<string, string>;
+  }
+  interface ThemeOptions {
+    icons?: Record<string, string>;
+  }
 }
 
 const cloudfrontDomain = import.meta.env.VITE_CLOUDFRONT_DOMAIN;
@@ -16,53 +21,40 @@ const commonPalette = {
   },
 };
 
-// ダークテーマとライトテーマのパレット設定
-const darkPalette = {
-  mode: 'dark',
-  background: {
-    default: '#232323',
-    paper: '#303030',
+const darkTheme = createTheme({
+  palette: {
+    ...commonPalette,
+    mode: 'dark',
+    background: {
+      default: '#232323',
+      paper: '#303030',
+    },
+    text: {
+      primary: '#ffffff',
+      secondary: '#e0e0e0',
+    },
   },
-  text: {
-    primary: '#ffffff',
-    secondary: '#e0e0e0',
+  icons: {
+    logo: `${cloudfrontDomain}/images/favicon_512x512_white.png`,
   },
-};
-
-const lightPalette = {
-  mode: 'light',
-  background: {
-    default: '#f5f5f5',
-    paper: '#ffffff',
-  },
-  text: {
-    primary: '#333333',
-    secondary: '#666666',
-  },
-};
-
-// ダークテーマとライトテーマのアイコン設定
-const darkIcons: CustomTheme['icons'] = {
-  logo: `${cloudfrontDomain}/images/favicon_512x512_white.png`,
-};
-
-const lightIcons: CustomTheme['icons'] = {
-  logo: `${cloudfrontDomain}/images/favicon_512x512.png`,
-};
-
-// 最終的なテーマ
-const baseTheme = createTheme({
-  palette: commonPalette,
 });
 
-const darkTheme = createTheme(baseTheme, {
-  palette: darkPalette,
-}) as CustomTheme;
-darkTheme.icons = darkIcons;
+const lightTheme = createTheme({
+  palette: {
+    ...commonPalette,
+    mode: 'light',
+    background: {
+      default: '#f5f5f5',
+      paper: '#ffffff',
+    },
+    text: {
+      primary: '#333333',
+      secondary: '#666666',
+    },
+  },
+  icons: {
+    logo: `${cloudfrontDomain}/images/favicon_512x512.png`,
+  },
+});
 
-const lightTheme = createTheme(baseTheme, {
-  palette: lightPalette,
-}) as CustomTheme;
-lightTheme.icons = lightIcons;
-
-export { darkTheme, lightTheme, type CustomTheme };
+export { darkTheme, lightTheme };

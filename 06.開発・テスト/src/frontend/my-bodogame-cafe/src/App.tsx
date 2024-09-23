@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { BrowserRouter } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
 import { Container } from '@mui/material';
 import { CssBaseline } from '@mui/material';
-import { ThemeProvider } from '@mui/material/styles';
 
 import BoardGameList from './components/BoardGameList';
 import Header from './components/Header';

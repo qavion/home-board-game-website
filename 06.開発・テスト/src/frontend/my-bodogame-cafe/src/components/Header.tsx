@@ -22,8 +22,6 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 
-import { CustomTheme } from '../theme';
-
 interface Props {
   children?: React.ReactElement<any>;
   label: string;
@@ -100,7 +98,7 @@ const Header: React.FC<Props> = (props: Props) => {
 
   const { toggleTheme } = props;
   const { label } = props;
-  const theme = useTheme() as CustomTheme;
+  const theme = useTheme();
 
   return (
     <>
@@ -111,12 +109,10 @@ const Header: React.FC<Props> = (props: Props) => {
               <Avatar
                 alt="サイトロゴ"
                 src={theme.icons.logo}
-                sx={{ width: 32, height: 32}}
+                sx={{ width: 32, height: 32 }}
               />
             </IconButton>
-            <Typography>
-              {label}
-            </Typography>
+            <Typography>{label}</Typography>
             <Box sx={{ flexGrow: 1 }} />
             <Switch
               color="default"
@@ -140,8 +136,12 @@ const Header: React.FC<Props> = (props: Props) => {
               open={Boolean(anchorEl)}
               onClose={handleMenuClose}
             >
-              <MenuItem onClick={() => handleMenuItemClick('/')}>トップページ</MenuItem>
-              <MenuItem onClick={() => handleMenuItemClick('/boardgames')}>ボードゲーム一覧</MenuItem>
+              <MenuItem onClick={() => handleMenuItemClick('/')}>
+                トップページ
+              </MenuItem>
+              <MenuItem onClick={() => handleMenuItemClick('/boardgames')}>
+                ボードゲーム一覧
+              </MenuItem>
             </Menu>
           </Toolbar>
         </AppBar>
