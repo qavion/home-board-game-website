@@ -53,9 +53,9 @@ const BoardGameList: React.FC = () => {
 
     return (
         <Box sx={{ flexGrow: 1, padding: 2 }}>
-            <Typography variant="h4" gutterBottom>
+            {/* <Typography variant="h4" gutterBottom>
                 ボードゲーム一覧
-            </Typography>
+            </Typography> */}
             <Grid2 container spacing={2}>
                 {dummyBoardGames.map((game) => (
                     <Grid2 size={{ xs: 12, sm: 6, md: 4, lg: 3, xl: 2}} key={game.id}>
