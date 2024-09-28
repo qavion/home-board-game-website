@@ -14,10 +14,10 @@ const cloudfrontDomain = import.meta.env.VITE_CLOUDFRONT_DOMAIN;
 // 共通のパレット設定
 const commonPalette = {
   primary: {
-    main: '#2196F3',
+    main: '#324D5C',
   },
   secondary: {
-    main: '#f50057',
+    main: '#DE5B49',
   },
 };
 
@@ -53,7 +53,7 @@ const lightTheme = createTheme({
     },
   },
   icons: {
-    logo: `${cloudfrontDomain}/images/favicon_512x512.png`,
+    logo: `${cloudfrontDomain}/images/favicon_512x512_white.png`,
   },
 });
 
