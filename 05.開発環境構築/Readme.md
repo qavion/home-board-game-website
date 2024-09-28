@@ -40,6 +40,13 @@ npm install react-hook-form
 # Visual Studio Code 公式サイトからダウンロードし、インストール
 # [https://code.visualstudio.com/](https://code.visualstudio.com/)
 # 必要に応じて、ESLint、Prettier、TypeScript などの拡張機能をインストール
+
+# テスト用の json-serverのインストール
+npm install -g json-server
+# (プロジェクトのルートディレクトリに db.json ファイルを作成)
+# JSONサーバー起動
+json-server --watch db.json --port 3001
+
 ```
 
 ### HowToUse

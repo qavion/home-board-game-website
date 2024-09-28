@@ -6,8 +6,8 @@ import { CssBaseline } from '@mui/material';
 
 import BoardGameList from './components/BoardGameList';
 import Header from './components/Header';
-import { darkTheme } from './theme';
-import { lightTheme } from './theme';
+import { darkTheme, lightTheme } from './theme';
+import { BoardGameProvider } from './contexts/BoardGameContext';
 
 const App: React.FC = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -22,10 +22,12 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <BrowserRouter>
-        <Container maxWidth="lg">
-          <Header toggleTheme={toggleTheme} label={"ボードゲーム一覧"} />
-          <BoardGameList />
-        </Container>
+        <BoardGameProvider>
+          <Container maxWidth="lg">
+            <Header toggleTheme={toggleTheme} label={'ボードゲーム一覧'} />
+            <BoardGameList />
+          </Container>
+        </BoardGameProvider>
       </BrowserRouter>
     </ThemeProvider>
   );
