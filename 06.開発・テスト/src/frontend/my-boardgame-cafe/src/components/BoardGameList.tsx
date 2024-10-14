@@ -213,7 +213,7 @@ const BoardGameList: React.FC = () => {
                   <Rating
                     value={game.recommendation}
                     readOnly
-                    precision={0.5}
+                    precision={0.1}
                     size="small"
                   />
                 </Box>

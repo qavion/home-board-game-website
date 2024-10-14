@@ -113,6 +113,27 @@ export const fetchBoardGames = async (
   }
 };
 
+export const fetchBoardGame = async (
+  dispatch: React.Dispatch<BoardGameAction>,
+  id: string,
+) => {
+  dispatch({ type: 'FETCH_GAMES_START' });
+  try {
+    const response = await fetch(`http://localhost:3001/boardGames/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch board game');
+    }
+    const data = await response.json();
+    dispatch({ type: 'FETCH_GAMES_SUCCESS', payload: [data] });
+  } catch (error) {
+    dispatch({
+      type: 'FETCH_GAMES_ERROR',
+      payload:
+        error instanceof Error ? error.message : 'An unknown error occurred',
+    });
+  }
+};
+
 export const addBoardGame = async (
   dispatch: React.Dispatch<BoardGameAction>,
   newGame: Omit<BoardGame, 'id'>,

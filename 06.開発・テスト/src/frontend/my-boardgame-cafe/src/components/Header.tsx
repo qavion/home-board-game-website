@@ -139,7 +139,7 @@ const Header: React.FC<Props> = (props: Props) => {
               <MenuItem onClick={() => handleMenuItemClick('/')}>
                 トップページ
               </MenuItem>
-              <MenuItem onClick={() => handleMenuItemClick('/boardgames')}>
+              <MenuItem onClick={() => handleMenuItemClick('/')}>
                 ボードゲーム一覧
               </MenuItem>
             </Menu>
