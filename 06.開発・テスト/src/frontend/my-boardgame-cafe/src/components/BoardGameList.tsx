@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Box,
+  CircularProgress,
   IconButton,
   TextField,
   Typography,
@@ -81,7 +83,44 @@ const BoardGameList: React.FC = () => {
   });
 
   if (state.loading) {
-    return <Typography>Loading...</Typography>;
+    return (
+      <Box sx={{ display: 'grid', padding: 2, gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <IconButton
+            aria-label="filter"
+            onClick={handleFilterClick}
+            sx={{
+              color: filterOpen ? 'background.default' : 'text.primary',
+              bgcolor: filterOpen ? 'text.primary' : 'background.default',
+              width: 56,
+              height: 56,
+              '&:hover': {
+                bgcolor: filterOpen ? 'text.primary' : 'action.hover',
+              },
+            }}
+          >
+            <Tune />
+          </IconButton>
+          <TextField
+            label="検索"
+            value={searchKeyword}
+            onChange={handleSearchChange}
+            fullWidth
+            sx={{ flexGrow: 1 }}
+          />
+        </Box>
+        <Box>
+          {filterOpen && (
+            <FilterMenu
+              options={filterOptions}
+              onFilterChange={handleFilterChange}
+              selectedFilters={selectedFilters}
+            />
+          )}
+        </Box>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (state.error) {
@@ -126,7 +165,7 @@ const BoardGameList: React.FC = () => {
       <Grid2 container spacing={2}>
         {filteredGames.map((game) => (
           <Grid2 size={{ xs: 12, sm: 6, md: 4, lg: 3, xl: 2 }} key={game.id}>
-            <Card>
+            <Card component={Link} to={`/boardgames/${game.id}`} sx={{ textDecoration: 'none' }}>
               <Box sx={{ position: 'relative', paddingTop: '100%' }}>
                 <CardMedia
                   component="img"
