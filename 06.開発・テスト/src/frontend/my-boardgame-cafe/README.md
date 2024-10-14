@@ -1,3 +1,30 @@
+# My Boardgame Cafe
+
+このプロジェクトは、ボードゲームカフェを管理するためのフロントエンドアプリケーションです。以下にプロジェクトのセットアップと構成手順を示します。
+
+## はじめに
+
+開発を始めるには、以下の手順に従ってください：
+
+1. リポジトリをクローンします
+   ```sh
+   git clone https://github.com/yourusername/my-boardgame-cafe.git
+   cd my-boardgame-cafe
+   ```
+
+2. 依存関係をインストールします
+
+   ```
+   npm install
+   ```
+
+3. 開発サーバーを起動します
+
+   ```
+   npm run dev
+   ```
+
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

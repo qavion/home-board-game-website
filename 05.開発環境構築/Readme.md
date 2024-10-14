@@ -12,10 +12,10 @@
 # [https://nodejs.org/ja/](https://nodejs.org/ja/)
 
 # 2. プロジェクトの作成
-npm create vite@latest my-bodogame-cafe --template react-ts
+npm create vite@latest my-boardgame-cafe --template react-ts
 # framework: React
 # variant: TypeScript + SWC
-cd my-bodogame-cafe
+cd my-boardgame-cafe
 
 # 3. プロジェクトの初期設定
 npm install
