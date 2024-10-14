@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Accordion,
   AccordionSummary,
@@ -13,6 +13,12 @@ export interface FilterItem {
   label: string;
   value: string;
   children?: FilterItem[];
+}
+
+interface FilterMenuProps {
+  options: FilterItem[];
+  selectedFilters: string[];
+  onFilterChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export const filterOptions: FilterItem[] = [
@@ -62,18 +68,11 @@ export const filterOptions: FilterItem[] = [
   },
 ];
 
-export const FilterMenu: React.FC<{ options: FilterItem[] }> = ({
+export const FilterMenu: React.FC<FilterMenuProps> = ({
   options,
+  selectedFilters,
+  onFilterChange,
 }) => {
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-
-  const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value, checked } = event.target;
-    setSelectedFilters((prev) =>
-      checked ? [...prev, value] : prev.filter((v) => v !== value),
-    );
-  };
-
   return (
     <div>
       {options.map((option) => (
@@ -90,7 +89,7 @@ export const FilterMenu: React.FC<{ options: FilterItem[] }> = ({
                     <Checkbox
                       value={child.value}
                       checked={selectedFilters.includes(child.value)}
-                      onChange={handleFilterChange}
+                      onChange={onFilterChange}
                     />
                   }
                   label={child.label}
@@ -102,7 +101,7 @@ export const FilterMenu: React.FC<{ options: FilterItem[] }> = ({
                   <Checkbox
                     value={option.value}
                     checked={selectedFilters.includes(option.value)}
-                    onChange={handleFilterChange}
+                    onChange={onFilterChange}
                   />
                 }
                 label={option.label}

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 
-interface BoardGame {
+export interface BoardGame {
   id: number;
   title_kana: string;
   title: string;
