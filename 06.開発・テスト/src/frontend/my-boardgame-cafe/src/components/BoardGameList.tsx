@@ -19,16 +19,18 @@ import {
   fetchBoardGames,
 } from '../contexts/BoardGameContext';
 import {
+  filter as defaultFilter,
   FilterItem,
-  filterOptions,
-  FilterMenu
+  FilterMenu,
+  FilterCategory,
 } from './FilterMenu';
 
 const BoardGameList: React.FC = () => {
   const cloudfrontDomain = import.meta.env.VITE_CLOUDFRONT_DOMAIN;
   const { state, dispatch } = useBoardGameContext();
   const [filterOpen, setFilterOpen] = useState(false);
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [filter, setFilter] =
+    useState<Record<string, FilterCategory>>(defaultFilter);
   const [searchKeyword, setSearchKeyword] = useState('');
 
   useEffect(() => {
@@ -39,45 +41,57 @@ const BoardGameList: React.FC = () => {
     setFilterOpen(!filterOpen);
   };
 
-  const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value, checked } = event.target;
-    setSelectedFilters((prev) =>
-      checked ? [...prev, value] : prev.filter((v) => v !== value),
-    );
+  const handleFilterChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    categoryKey: string,
+    item: FilterItem,
+  ) => {
+    const { checked } = event.target;
+    setFilter((prev) => {
+      return {
+        ...prev,
+        [categoryKey]: {
+          ...prev[categoryKey],
+          items: prev[categoryKey].items.map((i) =>
+            i.value === item.value ? { ...i, checked } : i,
+          ),
+        },
+      };
+    });
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchKeyword(event.target.value);
   };
 
-  const flattenFilters = (items: FilterItem[]): string[] => {
-    return items.reduce((acc: string[], item) => {
-      acc.push(item.value);
-      if (item.children) {
-        acc.push(...flattenFilters(item.children));
-      }
-      return acc;
-    }, []);
-  };
-
-  const allFilterValues = flattenFilters(filterOptions);
-
   const filteredGames = state.boardGames.filter((game) => {
     const matchesSearch =
       game.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
       game.title_kana.toLowerCase().includes(searchKeyword.toLowerCase());
 
-    const matchesFilters =
-      selectedFilters.length === 0 ||
-      selectedFilters.some(
-        (filter) =>
-          allFilterValues.includes(filter) &&
-          (game.genre.includes(filter) ||
-            game.playerCount.text.includes(filter) ||
-            game.playTime.text.includes(filter) ||
-            game.age.text.includes(filter) ||
-            game.difficulty.toString() === filter),
+    const matchesFilters = Object.entries(filter).every(([key, category]) => {
+      const selectedFilters = category.items.filter((item) => item.checked);
+      return (
+        selectedFilters.length === 0 ||
+        selectedFilters.some((item) => {
+          switch (key) {
+            case 'recommendation':
+              return true;
+            case 'difficulty':
+              return item.label.includes(game.difficulty);
+            case 'playTime':
+              const [min_time, max_time] = item.value.split('to').map(Number);
+              return (
+                game.playTime.min <= max_time && game.playTime.max >= min_time
+              );
+            case 'genre':
+              return game.genre.includes(item.label);
+            default:
+              return false;
+          }
+        })
       );
+    });
 
     return matchesSearch && matchesFilters;
   });
@@ -112,9 +126,8 @@ const BoardGameList: React.FC = () => {
         <Box>
           {filterOpen && (
             <FilterMenu
-              options={filterOptions}
+              filter={filter}
               onFilterChange={handleFilterChange}
-              selectedFilters={selectedFilters}
             />
           )}
         </Box>
@@ -156,16 +169,19 @@ const BoardGameList: React.FC = () => {
       <Box>
         {filterOpen && (
           <FilterMenu
-            options={filterOptions}
+            filter={filter}
             onFilterChange={handleFilterChange}
-            selectedFilters={selectedFilters}
           />
         )}
       </Box>
       <Grid2 container spacing={2}>
         {filteredGames.map((game) => (
           <Grid2 size={{ xs: 12, sm: 6, md: 4, lg: 3, xl: 2 }} key={game.id}>
-            <Card component={Link} to={`/boardgames/${game.id}`} sx={{ textDecoration: 'none' }}>
+            <Card
+              component={Link}
+              to={`/boardgames/${game.id}`}
+              sx={{ textDecoration: 'none' }}
+            >
               <Box sx={{ position: 'relative', paddingTop: '100%' }}>
                 <CardMedia
                   component="img"
