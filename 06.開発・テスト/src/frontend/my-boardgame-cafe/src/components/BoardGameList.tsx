@@ -12,6 +12,7 @@ import {
   CardMedia,
   Chip,
   Rating,
+  Button,
 } from '@mui/material';
 import { Tune } from '@mui/icons-material';
 import {
@@ -62,6 +63,11 @@ const BoardGameList: React.FC = () => {
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchKeyword(event.target.value);
+  };
+
+  const handleClearFilters = () => {
+    setFilter(defaultFilter);
+    setSearchKeyword('');
   };
 
   const filteredGames = state.boardGames.filter((game) => {
@@ -125,10 +131,7 @@ const BoardGameList: React.FC = () => {
         </Box>
         <Box>
           {filterOpen && (
-            <FilterMenu
-              filter={filter}
-              onFilterChange={handleFilterChange}
-            />
+            <FilterMenu filter={filter} onFilterChange={handleFilterChange} />
           )}
         </Box>
         <CircularProgress />
@@ -168,12 +171,17 @@ const BoardGameList: React.FC = () => {
       </Box>
       <Box>
         {filterOpen && (
-          <FilterMenu
-            filter={filter}
-            onFilterChange={handleFilterChange}
-          />
+          <FilterMenu filter={filter} onFilterChange={handleFilterChange} />
         )}
       </Box>
+      {filteredGames.length === 0 && (
+        <Box sx={{ textAlign: 'center', mt: 4 }}>
+          <Typography>条件に一致するゲームはありません。</Typography>
+          <Button variant="contained" onClick={handleClearFilters} sx={{ mt: 2 }}>
+            条件をすべて消去
+          </Button>
+        </Box>
+      )}
       <Grid2 container spacing={2}>
         {filteredGames.map((game) => (
           <Grid2 size={{ xs: 12, sm: 6, md: 4, lg: 3, xl: 2 }} key={game.id}>
