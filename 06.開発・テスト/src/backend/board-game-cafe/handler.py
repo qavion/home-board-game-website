@@ -1,0 +1,118 @@
+"""Lambda function to handle board game cafe API"""
+
+import json
+import os
+from decimal import Decimal
+from typing import Any, Dict
+
+import boto3
+
+# from boto3.dynamodb.conditions import Key, Attr
+
+dynamodb = boto3.resource("dynamodb")
+table_name = os.environ["DYNAMODB_TABLE_NAME"]
+table = dynamodb.Table(table_name)
+
+
+class DecimalEncoder(json.JSONEncoder):
+    """Helper class to convert a DynamoDB item to JSON"""
+
+    def default(self, o: Any) -> Any:
+        if isinstance(o, Decimal):
+            return str(o)
+        return super(DecimalEncoder, self).default(o)
+
+
+def make_response(status_code: int, body: Dict[str, Any]) -> Dict[str, Any]:
+    """Helper function to make API response"""
+    return {
+        "statusCode": status_code,
+        "body": json.dumps(body, cls=DecimalEncoder, ensure_ascii=False),
+    }
+
+
+def get_all_board_game() -> Dict[str, Any]:
+    """
+    Get all board game data from DynamoDB.
+    Target data: id, title_kana, title, genre, tags, images, description,
+    playerCount, playTime, age, difficulty, recommendation
+    """
+    target_attr = ", ".join(
+        [
+            "id",
+            "title_kana",
+            "title",
+            "genre",
+            "tags",
+            "images",
+            "description",
+            "playerCount",
+            "playTime",
+            "age",
+            "difficulty",
+            "recommendation",
+        ]
+    )
+    try:
+        response = table.scan(ProjectionExpression=target_attr)
+        data = response["Items"]
+        return make_response(200, data)
+    except Exception as e:
+        return make_response(500, {"error": str(e)})
+
+
+def get_board_game(board_game_id: int) -> Dict[str, Any]:
+    """Get board game data from DynamoDB by id"""
+    try:
+        response = table.get_item(Key={"id": board_game_id})
+        if "Item" in response:
+            return make_response(200, response["Item"])
+        else:
+            return make_response(404, {"error": "Board game not found"})
+    except Exception as e:
+        return make_response(500, {"error": str(e)})
+
+
+def put_board_game(board_game_id: int, event: Dict[str, Any]) -> Dict[str, Any]:
+    """Update board game data in DynamoDB by id"""
+    try:
+        body_dict = json.loads(event["body"])
+        update_expr = f"SET {', '.join(k + ' = :' + k for k in body_dict)}"
+        expression_attr_values = {f":{k}": v for k, v in body_dict.items()}
+        # print(update_expr)
+        # print(expression_attr_values)
+        response = table.update_item(
+            Key={"id": board_game_id},
+            UpdateExpression=update_expr,
+            ExpressionAttributeValues=expression_attr_values,
+            ReturnValues="ALL_NEW",
+        )
+        return make_response(200, response["Attributes"])
+    except Exception as e:
+        return make_response(500, {"error": str(e)})
+
+
+def board_game_cafe(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    """Lambda handler function"""
+    print(event)
+    method = event["requestContext"]["http"]["method"]
+    path = event["requestContext"]["http"]["path"]
+    if method == "GET":
+        if path == "/boardgames":
+            # GET /boardgames
+            return get_all_board_game()
+        elif path.startswith("/boardgames/"):
+            # GET /boardgames/{id}
+            board_game_id = int(path.split("/")[-1])
+            return get_board_game(board_game_id)
+    elif method == "PUT":
+        if path.startswith("/boardgames/"):
+            # PUT /boardgames/{id}
+            board_game_id = int(path.split("/")[-1])
+            return put_board_game(board_game_id, event)
+    elif method == "POST":
+        pass  # TODO
+    elif method == "DELETE":
+        pass  # TODO
+    else:
+        return make_response(405, {"error": "Method not allowed"})

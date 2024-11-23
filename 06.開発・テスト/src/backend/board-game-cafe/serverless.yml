@@ -1,0 +1,39 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: qavion
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: board-game-cafe
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: board-game-cafe
+
+provider:
+  name: aws
+  runtime: python3.12
+  region: ap-northeast-1
+  profile: default
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "dynamodb:Scan"
+            - "dynamodb:Query"
+            - "dynamodb:GetItem"
+            - "dynamodb:PutItem"
+            - "dynamodb:UpdateItem"
+          Resource: 
+            - "arn:aws:dynamodb:ap-northeast-1:*:table/${self:custom.dynamodbTableName}"
+            - "arn:aws:dynamodb:ap-northeast-1:*:table/${self:custom.dynamodbTableName}/index/*"
+
+functions:
+  board_game_cafe:
+    handler: handler.board_game_cafe
+    url: true
+    environment:
+      DYNAMODB_TABLE_NAME: ${self:custom.dynamodbTableName}
+    events:
+      - httpApi:
+          path: /
+          method: get
+
+custom:
+  dynamodbTableName: BoardGamesTable
