@@ -133,7 +133,6 @@
     * リクエストボディ: 新規追加するボードゲームの情報（JSON形式）
         ```json
         {
-            "id": (integer),
             "title_kana": (string),
             "title": (string),
             "genre": (string[]),
@@ -159,6 +158,7 @@
             "recommendation": (number)
         }
         ```
+    * id はサーバーで採番（最小の未使用整数ID）
 * **レスポンス:** 
     * 成功時
         * ステータスコード: 201 Created
@@ -193,15 +193,6 @@
             }
             ```
     * 失敗時
-        * すでにIDが存在する場合
-            * ステータスコード: 400 Bad Request
-            * Content-Type: `application/json`
-            * レスポンスボディ:
-                ```json
-                {
-                    "error": "Board game with this ID already exists"
-                }
-                ```
         * サーバー側で予期せぬエラーが発生した場合
             * ステータスコード: 500 Internal Server Error
             * Content-Type: `application/json`
