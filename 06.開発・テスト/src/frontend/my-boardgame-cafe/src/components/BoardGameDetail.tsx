@@ -122,7 +122,12 @@ const BoardGameDetail: React.FC = () => {
             </AccordionSummary>
             <AccordionDetails>
               <Typography variant="body2" color="text.secondary">
-                {game.rules}
+                {game.rules.split('\n').map((rule, index) => (
+                  <span key={index}>
+                    {rule}
+                    <br />
+                  </span>
+                ))}
               </Typography>
             </AccordionDetails>
           </Accordion>

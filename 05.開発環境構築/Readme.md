@@ -47,6 +47,10 @@ npm install -g json-server
 # JSONサーバー起動
 json-server --watch db.json --port 3001
 
+# Storybookのインストール
+npx storybook init
+# Storybookの起動
+npm run storybook
 ```
 
 ### HowToUse

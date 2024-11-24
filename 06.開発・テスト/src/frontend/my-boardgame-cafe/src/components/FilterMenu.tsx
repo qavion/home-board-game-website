@@ -37,7 +37,7 @@ export const filter: Record<string, FilterCategory> = {
   difficulty: {
     label: '難易度',
     items: [
-      { label: '初心者向け', value: 'beginner', checked: false },
+      { label: '初級者向け', value: 'beginner', checked: false },
       { label: '中級者向け', value: 'intermediate', checked: false },
       { label: '上級者向け', value: 'advanced', checked: false },
     ],
@@ -92,11 +92,11 @@ export const FilterMenu: React.FC<FilterMenuProps> = ({
         <Accordion key={category.label}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             {category.items.filter((i) => i.checked).length > 0 ? (
-              <Typography sx={{fontWeight: 'bold'}}>
+              <Typography sx={{ fontWeight: 'bold' }}>
                 {category.label +
-                  ' (' +
+                  '（' +
                   category.items.filter((i) => i.checked).length +
-                  ')'}
+                  '）'}
               </Typography>
             ) : (
               <Typography>{category.label}</Typography>

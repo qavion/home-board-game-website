@@ -13,9 +13,29 @@ dist/
 .serverless/
 
 # Terraform
-.terraform/
+**/.terraform/*
+.terraform.lock.hcl
+
+# .tfstate files
 *.tfstate
-*.tfplan
+*.tfstate.backup
+*.tfstate.*
+
+# .tfstate files
+*.tfvars
+*.tfvars.*
+
+crash.log
+
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# python
+*.pyc
+__pycache__/
+venv/
 
 # 環境変数
 .env

@@ -97,11 +97,18 @@ export const fetchBoardGames = async (
   dispatch: React.Dispatch<BoardGameAction>,
 ) => {
   dispatch({ type: 'FETCH_GAMES_START' });
+  const apiEndpoint = import.meta.env.VITE_API_ENDPOINT;
   try {
-    const response = await fetch('http://localhost:3001/boardGames');
+    const response = await fetch(apiEndpoint + '/boardgames', {
+      headers: {
+        'x-api-key': import.meta.env.VITE_API_KEY,
+      },
+      mode: 'cors',
+    });
     if (!response.ok) {
       throw new Error('Failed to fetch board games');
     }
+    console.log(response);
     const data = await response.json();
     dispatch({ type: 'FETCH_GAMES_SUCCESS', payload: data });
   } catch (error) {
@@ -118,8 +125,14 @@ export const fetchBoardGame = async (
   id: string,
 ) => {
   dispatch({ type: 'FETCH_GAMES_START' });
+  const apiEndpoint = import.meta.env.VITE_API_ENDPOINT;
   try {
-    const response = await fetch(`http://localhost:3001/boardGames/${id}`);
+    const response = await fetch(apiEndpoint + `/boardgames/${id}`, {
+      headers: {
+        'x-api-key': import.meta.env.VITE_API_KEY,
+      },
+      mode: 'cors',
+    });
     if (!response.ok) {
       throw new Error('Failed to fetch board game');
     }
@@ -138,13 +151,15 @@ export const addBoardGame = async (
   dispatch: React.Dispatch<BoardGameAction>,
   newGame: Omit<BoardGame, 'id'>,
 ) => {
+  const apiEndpoint = import.meta.env.VITE_API_ENDPOINT;
   try {
-    const response = await fetch('http://localhost:3001/boardGames', {
+    const response = await fetch(apiEndpoint + '/boardgames', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(newGame),
+      mode: 'cors',
     });
     if (!response.ok) {
       throw new Error('Failed to add new board game');

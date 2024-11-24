@@ -13,8 +13,10 @@ import {
   Chip,
   Rating,
   Button,
+  Menu,
+  MenuItem,
 } from '@mui/material';
-import { Tune } from '@mui/icons-material';
+import { Tune, SortByAlpha } from '@mui/icons-material';
 import {
   useBoardGameContext,
   fetchBoardGames,
@@ -33,6 +35,8 @@ const BoardGameList: React.FC = () => {
   const [filter, setFilter] =
     useState<Record<string, FilterCategory>>(defaultFilter);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [sortOrder, setSortOrder] = useState<'title' | 'title_desc' | 'title_kana' | 'recommendation'>('title');
+  const [sortMenuAnchorEl, setSortMenuAnchorEl] = useState<null | HTMLElement>(null);
 
   useEffect(() => {
     fetchBoardGames(dispatch);
@@ -40,6 +44,19 @@ const BoardGameList: React.FC = () => {
 
   const handleFilterClick = () => {
     setFilterOpen(!filterOpen);
+  };
+
+  const handleSortClick = (event: React.MouseEvent<HTMLElement>) => {
+    setSortMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleSortClose = () => {
+    setSortMenuAnchorEl(null);
+  };
+
+  const handleSortChange = (order: 'title' | 'title_desc' | 'title_kana' | 'recommendation') => {
+    setSortOrder(order);
+    handleSortClose();
   };
 
   const handleFilterChange = (
@@ -71,9 +88,16 @@ const BoardGameList: React.FC = () => {
   };
 
   const filteredGames = state.boardGames.filter((game) => {
-    const matchesSearch =
-      game.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-      game.title_kana.toLowerCase().includes(searchKeyword.toLowerCase());
+    const keyWords = searchKeyword.split(/\s+/);
+    const matchesSearch = keyWords.every((keyWord) => {
+      return (
+        game.title.toLowerCase().includes(keyWord.toLowerCase()) ||
+        game.title_kana.toLowerCase().includes(keyWord.toLowerCase()) ||
+        game.genre.some((g) => g.toLowerCase().includes(keyWord.toLowerCase())) ||
+        game.description.toLowerCase().includes(keyWord.toLowerCase()) ||
+        game.tags.some((t) => t.toLowerCase().includes(keyWord.toLowerCase()))
+      );
+    });
 
     const matchesFilters = Object.entries(filter).every(([key, category]) => {
       const selectedFilters = category.items.filter((item) => item.checked);
@@ -102,6 +126,21 @@ const BoardGameList: React.FC = () => {
     return matchesSearch && matchesFilters;
   });
 
+  const sortedGames = [...filteredGames].sort((a, b) => {
+    switch (sortOrder) {
+      case 'title':
+        return a.title.localeCompare(b.title);
+      case 'title_desc':
+        return b.title.localeCompare(a.title);
+      case 'title_kana':
+        return a.title_kana.localeCompare(b.title_kana);
+      case 'recommendation':
+        return b.recommendation - a.recommendation;
+      default:
+        return 0;
+    }
+  });
+
   if (state.loading) {
     return (
       <Box sx={{ display: 'grid', padding: 2, gap: 2 }}>
@@ -112,14 +151,29 @@ const BoardGameList: React.FC = () => {
             sx={{
               color: filterOpen ? 'background.default' : 'text.primary',
               bgcolor: filterOpen ? 'text.primary' : 'background.default',
-              width: 56,
-              height: 56,
+              width: 40, // Adjusted size
+              height: 40,
               '&:hover': {
                 bgcolor: filterOpen ? 'text.primary' : 'action.hover',
               },
             }}
           >
-            <Tune />
+            <Tune sx={{ fontSize: 20 }} />
+          </IconButton>
+          <IconButton
+            aria-label="sort"
+            onClick={handleSortClick}
+            sx={{
+              color: 'text.primary',
+              bgcolor: 'background.default',
+              width: 40,
+              height: 40,
+              '&:hover': {
+                bgcolor: 'action.hover',
+              },
+            }}
+          >
+            <SortByAlpha sx={{ fontSize: 20 }} />
           </IconButton>
           <TextField
             label="検索"
@@ -129,6 +183,16 @@ const BoardGameList: React.FC = () => {
             sx={{ flexGrow: 1 }}
           />
         </Box>
+        <Menu
+          anchorEl={sortMenuAnchorEl}
+          open={Boolean(sortMenuAnchorEl)}
+          onClose={handleSortClose}
+        >
+          <MenuItem onClick={() => handleSortChange('title')}>タイトル順</MenuItem>
+          <MenuItem onClick={() => handleSortChange('title_desc')}>タイトル逆順</MenuItem>
+          <MenuItem onClick={() => handleSortChange('title_kana')}>タイトルかな順</MenuItem>
+          <MenuItem onClick={() => handleSortChange('recommendation')}>おすすめ順</MenuItem>
+        </Menu>
         <Box>
           {filterOpen && (
             <FilterMenu filter={filter} onFilterChange={handleFilterChange} />
@@ -152,14 +216,29 @@ const BoardGameList: React.FC = () => {
           sx={{
             color: filterOpen ? 'background.default' : 'text.primary',
             bgcolor: filterOpen ? 'text.primary' : 'background.default',
-            width: 56,
-            height: 56,
+            width: 40,
+            height: 40,
             '&:hover': {
               bgcolor: filterOpen ? 'text.primary' : 'action.hover',
             },
           }}
         >
-          <Tune />
+          <Tune sx={{ fontSize: 20 }} />
+        </IconButton>
+        <IconButton
+          aria-label="sort"
+          onClick={handleSortClick}
+          sx={{
+            color: 'text.primary',
+            bgcolor: 'background.default',
+            width: 40,
+            height: 40,
+            '&:hover': {
+              bgcolor: 'action.hover',
+            },
+          }}
+        >
+          <SortByAlpha sx={{ fontSize: 20 }} />
         </IconButton>
         <TextField
           label="検索"
@@ -169,21 +248,35 @@ const BoardGameList: React.FC = () => {
           sx={{ flexGrow: 1 }}
         />
       </Box>
+      <Menu
+        anchorEl={sortMenuAnchorEl}
+        open={Boolean(sortMenuAnchorEl)}
+        onClose={handleSortClose}
+      >
+        <MenuItem onClick={() => handleSortChange('title')}>タイトル順</MenuItem>
+        <MenuItem onClick={() => handleSortChange('title_desc')}>タイトル逆順</MenuItem>
+        <MenuItem onClick={() => handleSortChange('title_kana')}>タイトルかな順</MenuItem>
+        <MenuItem onClick={() => handleSortChange('recommendation')}>おすすめ順</MenuItem>
+      </Menu>
       <Box>
         {filterOpen && (
           <FilterMenu filter={filter} onFilterChange={handleFilterChange} />
         )}
       </Box>
-      {filteredGames.length === 0 && (
+      {sortedGames.length === 0 && (
         <Box sx={{ textAlign: 'center', mt: 4 }}>
           <Typography>条件に一致するゲームはありません。</Typography>
-          <Button variant="contained" onClick={handleClearFilters} sx={{ mt: 2 }}>
+          <Button
+            variant="contained"
+            onClick={handleClearFilters}
+            sx={{ mt: 2 }}
+          >
             条件をすべて消去
           </Button>
         </Box>
       )}
       <Grid2 container spacing={2}>
-        {filteredGames.map((game) => (
+        {sortedGames.map((game) => (
           <Grid2 size={{ xs: 12, sm: 6, md: 4, lg: 3, xl: 2 }} key={game.id}>
             <Card
               component={Link}

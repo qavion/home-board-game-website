@@ -117,8 +117,8 @@ const Header: React.FC<Props> = (props: Props) => {
             <Switch
               color="default"
               onChange={toggleTheme}
-              checkedIcon={<Brightness4Icon />}
-              icon={<Brightness7Icon />}
+              checkedIcon={<Brightness4Icon sx={{marginTop: -0.24}} />}
+              icon={<Brightness7Icon sx={{marginTop: -0.24}} />}
               aria-label="Toggle theme"
             />
             <IconButton
@@ -136,9 +136,9 @@ const Header: React.FC<Props> = (props: Props) => {
               open={Boolean(anchorEl)}
               onClose={handleMenuClose}
             >
-              <MenuItem onClick={() => handleMenuItemClick('/')}>
+              {/* <MenuItem onClick={() => handleMenuItemClick('/')}>
                 トップページ
-              </MenuItem>
+              </MenuItem> */}
               <MenuItem onClick={() => handleMenuItemClick('/')}>
                 ボードゲーム一覧
               </MenuItem>
