@@ -31,6 +31,16 @@ def make_response(status_code: int, body: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def check_api_key(event: Dict[str, Any]) -> bool:
+    """Check if the API key is valid"""
+    api_key = os.environ.get("API_KEY")
+    headers = event["headers"]
+    print(headers)
+    if "x-api-key" not in headers:
+        return False
+    return headers["x-api-key"] == api_key
+
+
 def get_all_board_game() -> Dict[str, Any]:
     """
     Get all board game data from DynamoDB.
@@ -92,9 +102,31 @@ def put_board_game(board_game_id: int, event: Dict[str, Any]) -> Dict[str, Any]:
         return make_response(500, {"error": str(e)})
 
 
+def post_board_game(event: Dict[str, Any]) -> Dict[str, Any]:
+    """Add new board game data to DynamoDB"""
+    try:
+        body_dict = json.loads(event["body"])
+        board_game_id = body_dict["id"]
+
+        existing_item = table.get_item(Key={"id": int(board_game_id)})
+        if "Item" in existing_item:
+            return make_response(
+                400, {"error": "Board game with this ID already exists"}
+            )
+
+        response = table.put_item(Item=body_dict)
+        return make_response(201, response)
+    except Exception as e:
+        return make_response(500, {"error": str(e)})
+
+
 def board_game_cafe(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """Lambda handler function"""
     print(event)
+    
+    if not check_api_key(event):
+        return make_response(403, {"error": "Forbidden"})
+    
     method = event["requestContext"]["http"]["method"]
     path = event["requestContext"]["http"]["path"]
     if method == "GET":
@@ -111,7 +143,9 @@ def board_game_cafe(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             board_game_id = int(path.split("/")[-1])
             return put_board_game(board_game_id, event)
     elif method == "POST":
-        pass  # TODO
+        if path == "/boardgames":
+            # POST /boardgames
+            return post_board_game(event)
     elif method == "DELETE":
         pass  # TODO
     else:

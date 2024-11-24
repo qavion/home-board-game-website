@@ -123,6 +123,95 @@
                 }
                 ```
 
+#### 2.3. 新規ボードゲーム追加API
+
+* **エンドポイント:** 
+    * `POST /boardgames`
+* **メソッド:** 
+    * POST
+* **パラメータ:** 
+    * リクエストボディ: 新規追加するボードゲームの情報（JSON形式）
+        ```json
+        {
+            "id": (integer),
+            "title_kana": (string),
+            "title": (string),
+            "genre": (string[]),
+            "tags": (string[]),
+            "images": (string[]),
+            "description": (string),
+            "rules": (string),
+            "playerCount": {
+                "min": (integer),
+                "max": (integer),
+                "text": (string)
+            },
+            "playTime": {
+                "min": (integer),
+                "max": (integer),
+                "text": (string)
+            },
+            "age": {
+                "min": (integer),
+                "text": (string)
+            },
+            "difficulty": (string),
+            "recommendation": (number)
+        }
+        ```
+* **レスポンス:** 
+    * 成功時
+        * ステータスコード: 201 Created
+        * Content-Type: `application/json`
+        * レスポンスボディ: 作成されたボードゲームの情報（JSON形式）
+            ```json
+            {
+                "id": (integer),
+                "title_kana": (string),
+                "title": (string),
+                "genre": (string[]),
+                "tags": (string[]),
+                "images": (string[]),
+                "description": (string),
+                "rules": (string),
+                "playerCount": {
+                    "min": (integer),
+                    "max": (integer),
+                    "text": (string)
+                },
+                "playTime": {
+                    "min": (integer),
+                    "max": (integer),
+                    "text": (string)
+                },
+                "age": {
+                    "min": (integer),
+                    "text": (string)
+                },
+                "difficulty": (string),
+                "recommendation": (number)
+            }
+            ```
+    * 失敗時
+        * すでにIDが存在する場合
+            * ステータスコード: 400 Bad Request
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Board game with this ID already exists"
+                }
+                ```
+        * サーバー側で予期せぬエラーが発生した場合
+            * ステータスコード: 500 Internal Server Error
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Internal server error"
+                }
+                ```
+
 ### 3. 認証・認可
 
 * クレデンシャルな情報は提供しないが、ランダムなアクセスを防ぐためにAPIキーをHTTPヘッダーに設定する。（例： `X-Api-Key: YOUR_API_KEY`）

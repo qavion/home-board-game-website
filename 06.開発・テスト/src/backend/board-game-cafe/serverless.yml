@@ -30,6 +30,7 @@ functions:
     url: true
     environment:
       DYNAMODB_TABLE_NAME: ${self:custom.dynamodbTableName}
+      API_KEY: ${self:custom.apiKey}
     events:
       - httpApi:
           path: /
@@ -37,3 +38,4 @@ functions:
 
 custom:
   dynamodbTableName: BoardGamesTable
+  apiKey: ${file(./config.yml):apiKey}
