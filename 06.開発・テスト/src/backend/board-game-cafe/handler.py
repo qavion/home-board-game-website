@@ -19,15 +19,22 @@ class DecimalEncoder(json.JSONEncoder):
 
     def default(self, o: Any) -> Any:
         if isinstance(o, Decimal):
-            return str(o)
+            return float(o) if o % 1 > 0 else int(o)
         return super(DecimalEncoder, self).default(o)
 
 
 def make_response(status_code: int, body: Dict[str, Any]) -> Dict[str, Any]:
     """Helper function to make API response"""
+    allow_origin = os.environ.get("ALLOW_ORIGIN", "*")
     return {
         "statusCode": status_code,
         "body": json.dumps(body, cls=DecimalEncoder, ensure_ascii=False),
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": allow_origin,
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Origin, Accept, Content-Type, x-api-key",
+        },
     }
 
 
@@ -129,29 +136,31 @@ def board_game_cafe(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """Lambda handler function"""
     print(event)
 
+    method = event["requestContext"]["http"]["method"]
+    if method == "OPTIONS":
+        return make_response(200, {})
+
     if not check_api_key(event):
         return make_response(403, {"error": "Forbidden"})
 
-    method = event["requestContext"]["http"]["method"]
     path = event["requestContext"]["http"]["path"]
     if method == "GET":
         if path == "/boardgames":
             # GET /boardgames
             return get_all_board_game()
-        elif path.startswith("/boardgames/"):
+        if path.startswith("/boardgames/"):
             # GET /boardgames/{id}
             board_game_id = int(path.split("/")[-1])
             return get_board_game(board_game_id)
-    elif method == "PUT":
+    if method == "PUT":
         if path.startswith("/boardgames/"):
             # PUT /boardgames/{id}
             board_game_id = int(path.split("/")[-1])
             return put_board_game(board_game_id, event)
-    elif method == "POST":
+    if method == "POST":
         if path == "/boardgames":
             # POST /boardgames
             return post_board_game(event)
-    elif method == "DELETE":
+    if method == "DELETE":
         pass  # TODO
-    else:
-        return make_response(405, {"error": "Method not allowed"})
+    return make_response(405, {"error": "Method not allowed"})
