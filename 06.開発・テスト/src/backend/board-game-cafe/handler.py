@@ -132,6 +132,19 @@ def post_board_game(event: Dict[str, Any]) -> Dict[str, Any]:
         return make_response(500, {"error": str(e)})
 
 
+def delete_board_game(board_game_id: int) -> Dict[str, Any]:
+    """Delete board game data from DynamoDB by id"""
+    try:
+        response = table.get_item(Key={"id": board_game_id})
+        if "Item" not in response:
+            return make_response(404, {"error": "Board game not found"})
+
+        table.delete_item(Key={"id": board_game_id})
+        return make_response(200, {"message": "Board game deleted"})
+    except Exception as e:
+        return make_response(500, {"error": str(e)})
+
+
 def board_game_cafe(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """Lambda handler function"""
     print(event)
@@ -162,5 +175,8 @@ def board_game_cafe(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             # POST /boardgames
             return post_board_game(event)
     if method == "DELETE":
-        pass  # TODO
+        if path.startswith("/boardgames/"):
+            # DELETE /boardgames/{id}
+            board_game_id = int(path.split("/")[-1])
+            return delete_board_game(board_game_id)
     return make_response(405, {"error": "Method not allowed"})
