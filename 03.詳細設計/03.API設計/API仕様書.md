@@ -203,6 +203,102 @@
                 }
                 ```
 
+#### 2.4. ボードゲーム削除API
+
+* **エ��ドポイント:** 
+    * `DELETE /boardgames/{id}`
+* **メソッド:** 
+    * DELETE
+* **パラメータ:** 
+    * `id` (path): 削除したいボードゲームのID (integer)
+* **レスポンス:** 
+    * 成功時
+        * ステータスコード: 200 OK
+        * Content-Type: `application/json`
+        * レスポンスボディ:
+            ```json
+            {
+                "message": "Board game deleted"
+            }
+            ```
+    * 失敗時
+        * 指定されたIDのボードゲームが存在しない場合
+            * ステータスコード: 404 Not Found
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Board game not found"
+                }
+                ```
+        * サーバー側で予期せぬエラーが発生した場合
+            * ステータスコード: 500 Internal Server Error
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Internal server error"
+                }
+                ```
+
+#### 2.5. 画像アップロード用Presigned URL取得API
+
+* **エンドポイント:** 
+    * `POST /boardgames/presigned-url`
+* **メソッド:** 
+    * POST
+* **パラメータ:** 
+    * リクエストボディ: Presigned URLを取得するための情報（JSON形式）
+        ```json
+        {
+            "fileName": (string),
+            "contentType": (string)
+        }
+        ```
+        * fileName が空のときは UUID で自動設定
+        * 許可される contentType は以下の形式のみ
+          * "image/*"
+* **レスポンス:** 
+    * 成功時
+        * ステータスコード: 200 OK
+        * Content-Type: `application/json`
+        * レスポンスボディ: Presigned URL（JSON形式）
+            ```json
+            {
+                "presignedUrl": (string),
+                "path": (string),
+                "message": (string)
+            }
+            ```
+    * 失敗時
+        * ファイル名が既に存在する場合
+            * ステータスコード: 400 Bad Request
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "File name already exists in S3 (last modified: {timestamp})"
+                }
+                ```
+        * contentType が無効な場合
+            * ステータスコード: 400 Bad Request
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Invalid content type (image/*)"
+                }
+                ```
+        * サーバー側で予期せぬエラーが発生した場合
+            * ステータスコード: 500 Internal Server Error
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Internal server error"
+                }
+                ```
+
 ### 3. 認証・認可
 
 * クレデンシャルな情報は提供しないが、ランダムなアクセスを防ぐためにAPIキーをHTTPヘッダーに設定する。（例： `X-Api-Key: YOUR_API_KEY`）
@@ -217,4 +313,4 @@
 
 * バックエンド: Python 3
 * データベース: DynamoDB
-* AWS Lambda, API Gateway
+* AWS Lambda

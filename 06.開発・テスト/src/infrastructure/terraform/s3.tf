@@ -50,7 +50,11 @@ resource "aws_s3_bucket_policy" "site" {
         Sid       = "PublicReadGetObject"
         Effect    = "Allow"
         Principal = "*"
-        Action    = "s3:GetObject"
+        # presigned URL でのアクセスを許可するために s3:PutObject を追加
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+        ]
         Resource = [
           aws_s3_bucket.site.arn,
           "${aws_s3_bucket.site.arn}/*",

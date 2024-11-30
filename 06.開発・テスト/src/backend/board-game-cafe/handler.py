@@ -2,6 +2,7 @@
 
 import json
 import os
+import uuid
 from decimal import Decimal
 from typing import Any, Dict
 
@@ -12,6 +13,9 @@ import boto3
 dynamodb = boto3.resource("dynamodb")
 table_name = os.environ["DYNAMODB_TABLE_NAME"]
 table = dynamodb.Table(table_name)
+s3_client = boto3.client("s3")
+bucket_name = os.environ["S3_BUCKET_NAME"]
+s3_image_path = os.environ["S3_IMAGE_PATH"]
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -96,8 +100,6 @@ def put_board_game(board_game_id: int, event: Dict[str, Any]) -> Dict[str, Any]:
         body_dict = json.loads(event["body"], parse_float=Decimal)
         update_expr = f"SET {', '.join(k + ' = :' + k for k in body_dict)}"
         expression_attr_values = {f":{k}": v for k, v in body_dict.items()}
-        # print(update_expr)
-        # print(expression_attr_values)
         response = table.update_item(
             Key={"id": board_game_id},
             UpdateExpression=update_expr,
@@ -145,6 +147,61 @@ def delete_board_game(board_game_id: int) -> Dict[str, Any]:
         return make_response(500, {"error": str(e)})
 
 
+def get_presigned_url(event: Dict[str, Any]) -> Dict[str, Any]:
+    """Generate a presigned URL for uploading an image to S3"""
+    try:
+        success_messages = ["Upload image to S3"]
+        if "body" not in event:
+            return make_response(
+                400, {"error": "Request body is required {fileName, contentType}"}
+            )
+        body_dict = json.loads(event["body"])
+        if "fileName" not in body_dict:
+            file_name = uuid.uuid4().hex
+            success_messages.append(
+                "File name is not provided. Generated a random file name."
+            )
+        else:
+            file_name = body_dict["fileName"]
+        content_type = body_dict["contentType"]
+        path = f"{s3_image_path}/{file_name}"
+        # check file name and content type
+        if not content_type:
+            return make_response(400, {"error": "Content type is required"})
+        if not content_type.startswith("image/"):
+            return make_response(400, {"error": "Invalid content type (image/*)"})
+        # check if the file name already exists in S3
+        try:
+            response = s3_client.head_object(Bucket=bucket_name, Key=path)
+            return make_response(
+                400,
+                {
+                    "error": f"File name already exists in S3 (last modified: {response['LastModified']})"
+                },
+            )
+        except s3_client.exceptions.ClientError as e:
+            if e.response["Error"]["Code"] == "404":
+                pass
+
+        presigned_url = s3_client.generate_presigned_url(
+            "put_object",
+            Params={
+                "Bucket": bucket_name,
+                "Key": path,
+                "ContentType": content_type,
+            },
+            ExpiresIn=3600,
+        )
+        response_body = {
+            "presignedUrl": presigned_url,
+            "path": path,
+            "message": "\n".join(success_messages),
+        }
+        return make_response(200, response_body)
+    except Exception as e:
+        return make_response(500, {"error": str(e)})
+
+
 def board_game_cafe(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """Lambda handler function"""
     print(event)
@@ -161,6 +218,9 @@ def board_game_cafe(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if path == "/boardgames":
             # GET /boardgames
             return get_all_board_game()
+        if path == "/boardgames/presigned-url":
+            # GET /boardgames/presigned-url
+            return get_presigned_url(event)
         if path.startswith("/boardgames/"):
             # GET /boardgames/{id}
             board_game_id = int(path.split("/")[-1])
