@@ -50,20 +50,30 @@ resource "aws_s3_bucket_policy" "site" {
         Sid       = "PublicReadGetObject"
         Effect    = "Allow"
         Principal = "*"
-        # presigned URL でのアクセスを許可するために s3:PutObject を追加
-        Action = [
+        Action    = [
           "s3:GetObject",
-          "s3:PutObject",
+          "s3:PutObject"
         ]
         Resource = [
-          aws_s3_bucket.site.arn,
-          "${aws_s3_bucket.site.arn}/*",
+          "${aws_s3_bucket.site.arn}/*"
         ]
-      },
+      }
     ]
   })
 
   depends_on = [
     aws_s3_bucket_public_access_block.site
   ]
+}
+
+resource "aws_s3_bucket_cors_configuration" "site" {
+  bucket = aws_s3_bucket.site.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET", "PUT", "POST", "DELETE", "HEAD"]
+    allowed_origins = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
 }

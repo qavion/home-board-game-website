@@ -54,7 +54,7 @@
             * レスポンスボディ:
                 ```json
                 {
-                    "error": "Boardgame not found"
+                    "error": "Board game not found"
                 }
                 ```
         * サーバー側で予期せぬエラーが発生した場合
@@ -203,9 +203,122 @@
                 }
                 ```
 
-#### 2.4. ボードゲーム削除API
+#### 2.4. ボードゲーム更新API
 
-* **エ��ドポイント:** 
+* **エンド��イント:** 
+    * `PUT /boardgames/{id}`
+* **メソッド:** 
+    * PUT
+* **パラメータ:** 
+    * `id` (path): 更新したいボードゲームのID (integer)
+    * リクエストボディ: 更新するボードゲームの情報（JSON形式）
+        ```json
+        {
+            "title_kana": (string),
+            "title": (string),
+            "genre": (string[]),
+            "tags": (string[]),
+            "images": (string[]),
+            "description": (string),
+            "rules": (string),
+            "playerCount": {
+                "min": (integer),
+                "max": (integer),
+                "text": (string)
+            },
+            "playTime": {
+                "min": (integer),
+                "max": (integer),
+                "text": (string)
+            },
+            "age": {
+                "min": (integer),
+                "text": (string)
+            },
+            "difficulty": (string),
+            "recommendation": (number)
+        }
+        ```
+* **レスポンス:** 
+    * 成功時
+        * ステータスコード: 200 OK
+        * Content-Type: `application/json`
+        * レスポンスボディ: 更新されたボードゲームの情報（JSON形式）
+            ```json
+            {
+                "id": (integer),
+                "title_kana": (string),
+                "title": (string),
+                "genre": (string[]),
+                "tags": (string[]),
+                "images": (string[]),
+                "description": (string),
+                "rules": (string),
+                "playerCount": {
+                    "min": (integer),
+                    "max": (integer),
+                    "text": (string)
+                },
+                "playTime": {
+                    "min": (integer),
+                    "max": (integer),
+                    "text": (string)
+                },
+                "age": {
+                    "min": (integer),
+                    "text": (string)
+                },
+                "difficulty": (string),
+                "recommendation": (number)
+            }
+            ```
+    * 失敗時
+        * 指定されたIDのボードゲームが存在しない場合
+            * ステータスコード: 404 Not Found
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Board game not found"
+                }
+                ```
+        * リクエストボディが無効な場合
+            * ステータスコード: 400 Bad Request
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Invalid key: {key}"
+                }
+                ```
+                ```json
+                {
+                    "error": "Invalid data type: {data_type}"
+                }
+                ```
+                ```json
+                {
+                    "error": "Missing required element in {key}: {element}"
+                }
+                ```
+                ```json
+                {
+                    "error": "Invalid data type. Expected {valid_types}"
+                }
+                ```
+        * サーバー側で予期せぬエラーが発生した場合
+            * ステータスコード: 500 Internal Server Error
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Internal server error"
+                }
+                ```
+
+#### 2.5. ボードゲーム削除API
+
+* **エンドポイント:** 
     * `DELETE /boardgames/{id}`
 * **メソッド:** 
     * DELETE
@@ -241,7 +354,7 @@
                 }
                 ```
 
-#### 2.5. 画像アップロード用Presigned URL取得API
+#### 2.6. 画像アップロード用Presigned URL取得API
 
 * **エンドポイント:** 
     * `POST /boardgames/presigned-url`
@@ -287,6 +400,50 @@
                 ```json
                 {
                     "error": "Invalid content type (image/*)"
+                }
+                ```
+        * サーバー側で予期せぬエラーが発生した場合
+            * ステータスコード: 500 Internal Server Error
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Internal server error"
+                }
+                ```
+
+#### 2.7. ログインAPI
+
+* **エンドポイント:** 
+    * `POST /login`
+* **メソッド:** 
+    * POST
+* **パラメータ:** 
+    * リクエストヘッダー: Basic認証情報（Base64エンコードされたユーザー名とパスワード）
+      * 例
+        ```
+        "Authorization": "Basic XXXXXXXXXXXXXXXXXXXX"
+        ```
+* **レスポンス:** 
+    * 成功時
+        * ステータスコード: 200 OK
+        * Content-Type: `application/json`
+        * レスポンスボディ: ログイン結果と管理者フラグ（JSON形式）
+            ```json
+            {
+                "login": "OK",
+                "isAdmin": true
+            }
+            ```
+    * 失敗時
+        * 認証情報が無効な場合
+            * ステータスコード: 401 Unauthorized
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "login": "NG",
+                    "isAdmin": false
                 }
                 ```
         * サーバー側で予期せぬエラーが発生した場合

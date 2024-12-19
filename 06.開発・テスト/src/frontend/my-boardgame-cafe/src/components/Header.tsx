@@ -96,9 +96,16 @@ const Header: React.FC<Props> = (props: Props) => {
     handleMenuClose();
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('authHeader');
+    navigate('/');
+    handleMenuClose();
+  };
+
   const { toggleTheme } = props;
   const { label } = props;
   const theme = useTheme();
+  const isAdmin = localStorage.getItem('authHeader') !== null;
 
   return (
     <>
@@ -112,13 +119,15 @@ const Header: React.FC<Props> = (props: Props) => {
                 sx={{ width: 32, height: 32 }}
               />
             </IconButton>
-            <Typography>{label}</Typography>
+            <Typography>
+              {label} {isAdmin && ' <管理者>'}
+            </Typography>
             <Box sx={{ flexGrow: 1 }} />
             <Switch
               color="default"
               onChange={toggleTheme}
-              checkedIcon={<Brightness4Icon sx={{marginTop: -0.24}} />}
-              icon={<Brightness7Icon sx={{marginTop: -0.24}} />}
+              checkedIcon={<Brightness4Icon sx={{ marginTop: -0.24 }} />}
+              icon={<Brightness7Icon sx={{ marginTop: -0.24 }} />}
               aria-label="Toggle theme"
             />
             <IconButton
@@ -136,12 +145,16 @@ const Header: React.FC<Props> = (props: Props) => {
               open={Boolean(anchorEl)}
               onClose={handleMenuClose}
             >
-              {/* <MenuItem onClick={() => handleMenuItemClick('/')}>
-                トップページ
-              </MenuItem> */}
               <MenuItem onClick={() => handleMenuItemClick('/')}>
                 ボードゲーム一覧
               </MenuItem>
+              {isAdmin ? (
+                <MenuItem onClick={handleLogout}>ログアウト</MenuItem>
+              ) : (
+                <MenuItem onClick={() => handleMenuItemClick('/login')}>
+                  ログイン
+                </MenuItem>
+              )}
             </Menu>
           </Toolbar>
         </AppBar>

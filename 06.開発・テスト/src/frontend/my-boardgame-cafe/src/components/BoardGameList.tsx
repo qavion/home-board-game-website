@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Box,
   CircularProgress,
@@ -16,7 +16,7 @@ import {
   Menu,
   MenuItem,
 } from '@mui/material';
-import { Tune, SortByAlpha } from '@mui/icons-material';
+import { Tune, SortByAlpha, Add } from '@mui/icons-material';
 import {
   useBoardGameContext,
   fetchBoardGames,
@@ -28,15 +28,25 @@ import {
   FilterCategory,
 } from './FilterMenu';
 
-const BoardGameList: React.FC = () => {
+interface Props {
+  children?: React.ReactElement<any>;
+  isAdmin?: boolean;
+}
+
+const BoardGameList: React.FC<Props> = ({ isAdmin }) => {
   const cloudfrontDomain = import.meta.env.VITE_CLOUDFRONT_DOMAIN;
   const { state, dispatch } = useBoardGameContext();
   const [filterOpen, setFilterOpen] = useState(false);
   const [filter, setFilter] =
     useState<Record<string, FilterCategory>>(defaultFilter);
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [sortOrder, setSortOrder] = useState<'title' | 'title_desc' | 'title_kana' | 'recommendation'>('title');
-  const [sortMenuAnchorEl, setSortMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [sortOrder, setSortOrder] = useState<
+    'title' | 'title_desc' | 'title_kana' | 'recommendation'
+  >('title');
+  const [sortMenuAnchorEl, setSortMenuAnchorEl] = useState<null | HTMLElement>(
+    null,
+  );
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchBoardGames(dispatch);
@@ -54,7 +64,9 @@ const BoardGameList: React.FC = () => {
     setSortMenuAnchorEl(null);
   };
 
-  const handleSortChange = (order: 'title' | 'title_desc' | 'title_kana' | 'recommendation') => {
+  const handleSortChange = (
+    order: 'title' | 'title_desc' | 'title_kana' | 'recommendation',
+  ) => {
     setSortOrder(order);
     handleSortClose();
   };
@@ -87,13 +99,19 @@ const BoardGameList: React.FC = () => {
     setSearchKeyword('');
   };
 
+  const handleAddGame = () => {
+    navigate('/boardgames/new');
+  };
+
   const filteredGames = state.boardGames.filter((game) => {
     const keyWords = searchKeyword.split(/\s+/);
     const matchesSearch = keyWords.every((keyWord) => {
       return (
         game.title.toLowerCase().includes(keyWord.toLowerCase()) ||
         game.title_kana.toLowerCase().includes(keyWord.toLowerCase()) ||
-        game.genre.some((g) => g.toLowerCase().includes(keyWord.toLowerCase())) ||
+        game.genre.some((g) =>
+          g.toLowerCase().includes(keyWord.toLowerCase()),
+        ) ||
         game.description.toLowerCase().includes(keyWord.toLowerCase()) ||
         game.tags.some((t) => t.toLowerCase().includes(keyWord.toLowerCase()))
       );
@@ -182,16 +200,41 @@ const BoardGameList: React.FC = () => {
             fullWidth
             sx={{ flexGrow: 1 }}
           />
+          {isAdmin && (
+            <IconButton
+              aria-label="add"
+              onClick={handleAddGame}
+              sx={{
+                color: 'text.primary',
+                bgcolor: 'background.default',
+                width: 40,
+                height: 40,
+                '&:hover': {
+                  bgcolor: 'action.hover',
+                },
+              }}
+            >
+              <Add sx={{ fontSize: 20 }} />
+            </IconButton>
+          )}
         </Box>
         <Menu
           anchorEl={sortMenuAnchorEl}
           open={Boolean(sortMenuAnchorEl)}
           onClose={handleSortClose}
         >
-          <MenuItem onClick={() => handleSortChange('title')}>タイトル順</MenuItem>
-          <MenuItem onClick={() => handleSortChange('title_desc')}>タイトル逆順</MenuItem>
-          <MenuItem onClick={() => handleSortChange('title_kana')}>タイトルかな順</MenuItem>
-          <MenuItem onClick={() => handleSortChange('recommendation')}>おすすめ順</MenuItem>
+          <MenuItem onClick={() => handleSortChange('title')}>
+            タイトル順
+          </MenuItem>
+          <MenuItem onClick={() => handleSortChange('title_desc')}>
+            タイトル逆順
+          </MenuItem>
+          <MenuItem onClick={() => handleSortChange('title_kana')}>
+            タイトルかな順
+          </MenuItem>
+          <MenuItem onClick={() => handleSortChange('recommendation')}>
+            おすすめ順
+          </MenuItem>
         </Menu>
         <Box>
           {filterOpen && (
@@ -247,6 +290,23 @@ const BoardGameList: React.FC = () => {
           fullWidth
           sx={{ flexGrow: 1 }}
         />
+        {isAdmin && (
+          <IconButton
+            aria-label="add"
+            onClick={handleAddGame}
+            sx={{
+              color: 'text.primary',
+              bgcolor: 'background.default',
+              width: 40,
+              height: 40,
+              '&:hover': {
+                bgcolor: 'action.hover',
+              },
+            }}
+          >
+            <Add sx={{ fontSize: 20 }} />
+          </IconButton>
+        )}
       </Box>
       <Menu
         anchorEl={sortMenuAnchorEl}
@@ -254,9 +314,15 @@ const BoardGameList: React.FC = () => {
         onClose={handleSortClose}
       >
         <MenuItem onClick={() => handleSortChange('title')}>タイトル順</MenuItem>
-        <MenuItem onClick={() => handleSortChange('title_desc')}>タイトル逆順</MenuItem>
-        <MenuItem onClick={() => handleSortChange('title_kana')}>タイトルかな順</MenuItem>
-        <MenuItem onClick={() => handleSortChange('recommendation')}>おすすめ順</MenuItem>
+        <MenuItem onClick={() => handleSortChange('title_desc')}>
+          タイトル逆順
+        </MenuItem>
+        <MenuItem onClick={() => handleSortChange('title_kana')}>
+          タイトルかな順
+        </MenuItem>
+        <MenuItem onClick={() => handleSortChange('recommendation')}>
+          おすすめ順
+        </MenuItem>
       </Menu>
       <Box>
         {filterOpen && (

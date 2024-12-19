@@ -6,6 +6,17 @@ resource "aws_cloudfront_origin_access_control" "default" {
   signing_protocol                  = "sigv4"
 }
 
+resource "aws_cloudfront_function" "admin_auth_function" {
+  name    = "admin-auth-function"
+  runtime = "cloudfront-js-2.0"
+  code = templatefile(
+    "./admin-auth-function.js",
+    {
+      authString = base64encode("${var.admin_auth_username}:${var.admin_auth_password}")
+    }
+  )
+}
+
 resource "aws_cloudfront_distribution" "website_distribution" {
   origin {
     domain_name              = aws_s3_bucket.site.bucket_regional_domain_name
@@ -85,6 +96,31 @@ resource "aws_cloudfront_distribution" "website_distribution" {
     max_ttl                = 86400
     compress               = true
     viewer_protocol_policy = "redirect-to-https"
+  }
+
+  // 管理者向けのBehaviorを追加
+  ordered_cache_behavior {
+    path_pattern     = "/admin/*"
+    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = aws_s3_bucket.site.arn
+
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "all"
+      }
+    }
+
+    viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.admin_auth_function.arn
+    }
   }
 
   price_class = "PriceClass_200"

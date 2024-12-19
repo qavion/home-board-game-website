@@ -3,17 +3,20 @@
 import json
 import os
 import uuid
+from base64 import b64decode
 from decimal import Decimal
 from typing import Any, Dict
 
 import boto3
+from botocore.config import Config
 
 # from boto3.dynamodb.conditions import Key, Attr
 
 dynamodb = boto3.resource("dynamodb")
 table_name = os.environ["DYNAMODB_TABLE_NAME"]
 table = dynamodb.Table(table_name)
-s3_client = boto3.client("s3")
+my_config = Config(region_name="ap-northeast-1", signature_version="s3v4")
+s3_client = boto3.client("s3", config=my_config)
 bucket_name = os.environ["S3_BUCKET_NAME"]
 s3_image_path = os.environ["S3_IMAGE_PATH"]
 
@@ -37,7 +40,7 @@ def make_response(status_code: int, body: Dict[str, Any]) -> Dict[str, Any]:
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": allow_origin,
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Origin, Accept, Content-Type, x-api-key",
+            "Access-Control-Allow-Headers": "Origin, Accept, Content-Type, x-api-key, Authorization",
         },
     }
 
@@ -98,11 +101,85 @@ def put_board_game(board_game_id: int, event: Dict[str, Any]) -> Dict[str, Any]:
     """Update board game data in DynamoDB by id"""
     try:
         body_dict = json.loads(event["body"], parse_float=Decimal)
-        update_expr = f"SET {', '.join(k + ' = :' + k for k in body_dict)}"
+
+        # check if the board game exists
+        response = table.get_item(Key={"id": board_game_id})
+        if "Item" not in response:
+            return make_response(404, {"error": "Board game not found"})
+        if "id" in body_dict and body_dict.pop("id") != board_game_id:
+            message = f"Invalid ID: {body_dict['id']} != {board_game_id}"
+            return make_response(400, {"error": message})
+        # check if the request body is valid
+        valid_types = {
+            "id": int,
+            "title_kana": str,
+            "title": str,
+            "genre": [str],
+            "tags": [str],
+            "images": [str],
+            "description": str,
+            "playerCount": {
+                "min": int,
+                "max": int,
+                "text": str,
+            },
+            "playTime": {
+                "min": int,
+                "max": int,
+                "text": str,
+            },
+            "age": {
+                "min": int,
+                "text": str,
+            },
+            "difficulty": str,
+            "recommendation": Decimal,
+            "rules": str,
+        }
+        required_object_elements = {
+            "playerCount": ["min", "max", "text"],
+            "playTime": ["min", "max", "text"],
+            "age": ["min", "text"],
+        }
+        for key in body_dict:
+            if key not in valid_types:
+                return make_response(400, {"error": f"Invalid key: {key}"})
+
+        # check all data types
+        def check_data_type(data: Any, data_type: Any) -> bool:
+            if isinstance(data_type, type):
+                return isinstance(data, data_type)
+            if isinstance(data_type, list):
+                return all(check_data_type(item, data_type[0]) for item in data)
+            if isinstance(data_type, dict):
+                return all(check_data_type(data[key], data_type[key]) for key in data)
+            raise ValueError(f"Invalid data type: {data_type}")
+
+        for key in body_dict:
+            if key not in required_object_elements:
+                continue
+            for element in required_object_elements[key]:
+                if element in body_dict[key]:
+                    continue
+                message = f"Missing required element in {key}: {element}"
+                return make_response(400, {"error": message})
+
+        if not all(
+            check_data_type(body_dict[key], valid_types[key]) for key in body_dict
+        ):
+            return make_response(
+                400, {"error": f"Invalid data type. Expected {valid_types}"}
+            )
+
+        # update the board game data
+        update_expr = f"SET {', '.join(f'#{k} = :{k}' for k in body_dict)}"
+        # for using DynamoDB reserved keywords, use ExpressionAttributeNames
+        expression_attr_names = {f"#{k}": k for k in body_dict}
         expression_attr_values = {f":{k}": v for k, v in body_dict.items()}
         response = table.update_item(
             Key={"id": board_game_id},
             UpdateExpression=update_expr,
+            ExpressionAttributeNames=expression_attr_names,
             ExpressionAttributeValues=expression_attr_values,
             ReturnValues="ALL_NEW",
         )
@@ -173,15 +250,11 @@ def get_presigned_url(event: Dict[str, Any]) -> Dict[str, Any]:
         # check if the file name already exists in S3
         try:
             response = s3_client.head_object(Bucket=bucket_name, Key=path)
-            return make_response(
-                400,
-                {
-                    "error": f"File name already exists in S3 (last modified: {response['LastModified']})"
-                },
-            )
+            message = f"File name already exists in S3 (last modified: {response['LastModified']})"
+            return make_response(400, {"error": message})
         except s3_client.exceptions.ClientError as e:
-            if e.response["Error"]["Code"] == "404":
-                pass
+            if not e.response["Error"]["Code"] == "404":
+                raise e
 
         presigned_url = s3_client.generate_presigned_url(
             "put_object",
@@ -191,6 +264,7 @@ def get_presigned_url(event: Dict[str, Any]) -> Dict[str, Any]:
                 "ContentType": content_type,
             },
             ExpiresIn=3600,
+            HttpMethod="PUT",
         )
         response_body = {
             "presignedUrl": presigned_url,
@@ -198,6 +272,24 @@ def get_presigned_url(event: Dict[str, Any]) -> Dict[str, Any]:
             "message": "\n".join(success_messages),
         }
         return make_response(200, response_body)
+    except Exception as e:
+        return make_response(500, {"error": str(e)})
+
+
+def login(event: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle login request and check if the user is an admin"""
+    try:
+        auth_header = event["headers"].get("authorization")
+        if not auth_header or not auth_header.startswith("Basic "):
+            return make_response(401, {"login": "NG", "isAdmin": False})
+
+        admin_username = os.environ.get("ADMIN_USERNAME")
+        admin_password = os.environ.get("ADMIN_PASSWORD")
+        username, password = b64decode(auth_header[6:]).decode().split(":")
+        if username == admin_username and password == admin_password:
+            return make_response(200, {"login": "OK", "isAdmin": True})
+        else:
+            return make_response(401, {"login": "NG", "isAdmin": False})
     except Exception as e:
         return make_response(500, {"error": str(e)})
 
@@ -218,9 +310,6 @@ def board_game_cafe(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if path == "/boardgames":
             # GET /boardgames
             return get_all_board_game()
-        if path == "/boardgames/presigned-url":
-            # GET /boardgames/presigned-url
-            return get_presigned_url(event)
         if path.startswith("/boardgames/"):
             # GET /boardgames/{id}
             board_game_id = int(path.split("/")[-1])
@@ -234,6 +323,12 @@ def board_game_cafe(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if path == "/boardgames":
             # POST /boardgames
             return post_board_game(event)
+        if path == "/boardgames/presigned-url":
+            # POST /boardgames/presigned-url
+            return get_presigned_url(event)
+        if path == "/login":
+            # POST /login
+            return login(event)
     if method == "DELETE":
         if path.startswith("/boardgames/"):
             # DELETE /boardgames/{id}

@@ -65,3 +65,15 @@ variable "cloudfront_logs_bucket_name" {
   type        = string
   description = "The name of the S3 bucket for CloudFront logs"
 }
+
+variable "admin_auth_username" {
+  type        = string
+  description = "The username for the admin authentication"
+  default     = "admin"
+}
+
+variable "admin_auth_password" {
+  type        = string
+  description = "The password for the admin authentication"
+  sensitive   = true
+}

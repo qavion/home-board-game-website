@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container,
   Typography,
@@ -13,17 +13,29 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Button,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   useBoardGameContext,
   fetchBoardGame,
+  deleteBoardGame,
 } from '../contexts/BoardGameContext';
 
-const BoardGameDetail: React.FC = () => {
+interface Props {
+  children?: React.ReactElement<any>;
+  isAdmin?: boolean;
+}
+
+const BoardGameDetail: React.FC<Props> = (props: Props) => {
   const { id } = useParams<{ id: string }>();
   const { state, dispatch } = useBoardGameContext();
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  const { isAdmin } = props;
+
+  const cloudfrontDomain = import.meta.env.VITE_CLOUDFRONT_DOMAIN;
 
   useEffect(() => {
     const loadBoardGame = async () => {
@@ -33,6 +45,14 @@ const BoardGameDetail: React.FC = () => {
 
     loadBoardGame();
   }, [dispatch, id]);
+
+  const handleDelete = async () => {
+    await deleteBoardGame(dispatch, Number(id));
+  };
+
+  const handleEdit = () => {
+    navigate(`/boardgames/${id}/edit`);
+  };
 
   if (loading) {
     return <CircularProgress />;
@@ -56,7 +76,7 @@ const BoardGameDetail: React.FC = () => {
             component="img"
             alt={game.title}
             height="140"
-            image={`/${game.images[0]}`}
+            image={`${cloudfrontDomain}/${game.images[0]}`}
             sx={{
               position: 'absolute',
               top: 0,
@@ -131,6 +151,24 @@ const BoardGameDetail: React.FC = () => {
               </Typography>
             </AccordionDetails>
           </Accordion>
+          {isAdmin && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleEdit}
+              >
+                編集
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={handleDelete}
+              >
+                削除
+              </Button>
+            </Box>
+          )}
         </CardContent>
       </Card>
     </Container>

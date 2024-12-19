@@ -37,7 +37,9 @@ type BoardGameAction =
   | { type: 'FETCH_GAMES_START' }
   | { type: 'FETCH_GAMES_SUCCESS'; payload: BoardGame[] }
   | { type: 'FETCH_GAMES_ERROR'; payload: string }
-  | { type: 'ADD_GAME'; payload: BoardGame };
+  | { type: 'ADD_GAME'; payload: BoardGame }
+  | { type: 'DELETE_GAME'; payload: number }
+  | { type: 'UPDATE_GAME'; payload: BoardGame };
 
 const initialState: BoardGameState = {
   boardGames: [],
@@ -66,6 +68,18 @@ const boardGameReducer = (
       return { ...state, loading: false, error: action.payload };
     case 'ADD_GAME':
       return { ...state, boardGames: [...state.boardGames, action.payload] };
+    case 'DELETE_GAME':
+      return {
+        ...state,
+        boardGames: state.boardGames.filter(game => game.id !== action.payload),
+      };
+    case 'UPDATE_GAME':
+      return {
+        ...state,
+        boardGames: state.boardGames.map(game =>
+          game.id === action.payload.id ? action.payload : game,
+        ),
+      };
     default:
       return state;
   }
@@ -123,6 +137,7 @@ export const fetchBoardGames = async (
 export const fetchBoardGame = async (
   dispatch: React.Dispatch<BoardGameAction>,
   id: string,
+  // authHeader?: string,
 ) => {
   dispatch({ type: 'FETCH_GAMES_START' });
   const apiEndpoint = import.meta.env.VITE_API_ENDPOINT;
@@ -152,10 +167,13 @@ export const addBoardGame = async (
   newGame: Omit<BoardGame, 'id'>,
 ) => {
   const apiEndpoint = import.meta.env.VITE_API_ENDPOINT;
+  const authHeader = localStorage.getItem('authHeader') || '';
   try {
     const response = await fetch(apiEndpoint + '/boardgames', {
       method: 'POST',
       headers: {
+        'x-api-key': import.meta.env.VITE_API_KEY,
+        'Authorization': authHeader,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(newGame),
@@ -168,5 +186,58 @@ export const addBoardGame = async (
     dispatch({ type: 'ADD_GAME', payload: addedGame });
   } catch (error) {
     console.error('Error adding new board game:', error);
+  }
+};
+
+export const deleteBoardGame = async (
+  dispatch: React.Dispatch<BoardGameAction>,
+  id: number,
+) => {
+  const apiEndpoint = import.meta.env.VITE_API_ENDPOINT;
+  const authHeader = localStorage.getItem('authHeader') || '';
+  try {
+    const response = await fetch(apiEndpoint + `/boardgames/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'x-api-key': import.meta.env.VITE_API_KEY,
+        'Authorization': authHeader,
+      },
+      mode: 'cors',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete board game');
+    }
+    dispatch({ type: 'DELETE_GAME', payload: id });
+  } catch (error) {
+    console.error('Error deleting board game:', error);
+  }
+};
+
+type PartialBoardGame = {
+  id: number;
+} & Partial<Omit<BoardGame, 'id'>>;
+
+export const updateBoardGame = async (
+  dispatch: React.Dispatch<BoardGameAction>,
+  updatedGame: PartialBoardGame,
+) => {
+  const apiEndpoint = import.meta.env.VITE_API_ENDPOINT;
+  try {
+    const response = await fetch(apiEndpoint + `/boardgames/${updatedGame.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': import.meta.env.VITE_API_KEY,
+      },
+      body: JSON.stringify(updatedGame),
+      mode: 'cors',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update board game');
+    }
+    const data = await response.json();
+    dispatch({ type: 'UPDATE_GAME', payload: data });
+  } catch (error) {
+    console.error('Error updating board game:', error);
   }
 };

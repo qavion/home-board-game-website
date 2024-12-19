@@ -36,6 +36,8 @@ functions:
       ALLOW_ORIGIN: ${self:custom.allowOrigin}
       S3_BUCKET_NAME: ${self:custom.s3BucketName}
       S3_IMAGE_PATH: ${self:custom.s3ImagePath}
+      ADMIN_USERNAME: ${self:custom.adminUsername}
+      ADMIN_PASSWORD: ${self:custom.adminPassword}
 
 custom:
   dynamodbTableName: ${file(./config.yml):dynamodbTableName}
@@ -43,3 +45,5 @@ custom:
   allowOrigin: ${file(./config.yml):allowOrigin}
   s3BucketName: ${file(./config.yml):s3BucketName}
   s3ImagePath: ${file(./config.yml):s3ImagePath}
+  adminUsername: ${file(./config.yml):adminUsername}
+  adminPassword: ${file(./config.yml):adminPassword}
