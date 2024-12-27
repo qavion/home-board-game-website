@@ -261,11 +261,9 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
       setInputKey(inputKey.slice(0, -1));
       return;
     }
-    // Ignore if the key is not alphabet
-    if (!/^[a-zA-Z]$/.test(e.key)) {
-      return;
+    if (e.key in InputKeyToHiragana) {
+      setInputKey([...inputKey, e.key]);
     }
-    setInputKey([...inputKey, e.key]);
   }
 
   const tryAutoConvertToHiragana = () => {
