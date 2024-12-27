@@ -11,6 +11,8 @@ import {
   Autocomplete,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ClearIcon from '@mui/icons-material/Clear';
+import InputAdornment from '@mui/material/InputAdornment';
 import {
   useBoardGameContext,
   fetchBoardGame,
@@ -312,6 +314,17 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
           onBlur={() => tryAutoConvertToHiragana()}
           fullWidth
           margin="normal"
+          slotProps={{
+            input: {
+              endAdornment: title && (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setTitle('')}>
+                    <ClearIcon sx={{ fontSize: 16 }}/>
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
+          }}
         />
         <TextField
           label="タイトル（かな）"
@@ -319,6 +332,17 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
           onChange={(e) => setTitleKana(e.target.value)}
           fullWidth
           margin="normal"
+          slotProps={{
+            input: {
+              endAdornment: titleKana && (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setTitleKana('')}>
+                    <ClearIcon sx={{ fontSize: 16 }}/>
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
+          }}
         />
         {renderAutocomplete('ジャンル', allGenres, newGenre, setNewGenre, () =>
           handleAddItem(setGenre, genre, newGenre, setNewGenre),
