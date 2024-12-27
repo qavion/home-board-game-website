@@ -87,6 +87,13 @@ resource "aws_cloudfront_distribution" "website_distribution" {
     viewer_protocol_policy = "redirect-to-https"
   }
 
+  custom_error_response {
+    error_code            = 404
+    response_page_path    = "/index.html"
+    response_code         = 200
+    error_caching_min_ttl = 300
+  }
+
   price_class = "PriceClass_200"
 
   restrictions {
