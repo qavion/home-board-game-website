@@ -350,40 +350,64 @@ const BoardGameList: React.FC<Props> = ({ isAdmin }) => {
               sx={{ textDecoration: 'none' }}
             >
               <Box sx={{ position: 'relative', paddingTop: '100%' }}>
-                <CardMedia
-                  component="img"
-                  alt={game.title}
-                  height="140"
-                  image={`${cloudfrontDomain}/${game.images[0]}`}
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                  }}
-                />
+                {game.images && game.images.length > 0 ? (
+                  <CardMedia
+                    component="img"
+                    alt={game.title}
+                    height="140"
+                    image={`${cloudfrontDomain}/${game.images[0]}`}
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      bgcolor: 'grey.300',
+                    }}
+                  >
+                    <Typography>No Image Data</Typography>
+                  </Box>
+                )}
               </Box>
               <CardContent>
                 <Typography gutterBottom variant="h6" component="div">
                   {game.title}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  {game.title_kana}
+                  {game.title_kana || '不明'}
                 </Typography>
-                <Box sx={{ mb: 1 }}>
-                  {game.genre.map((g, index) => (
-                    <Chip
-                      key={index}
-                      label={g}
-                      size="small"
-                      sx={{ mr: 0.5, mb: 0.5 }}
-                    />
-                  ))}
-                </Box>
+                {game.genre && game.genre.length > 0 ? (
+                  <Box sx={{ mb: 1 }}>
+                    {game.genre.map((g, index) => (
+                      <Chip
+                        key={index}
+                        label={g}
+                        size="small"
+                        sx={{ mr: 0.5, mb: 0.5 }}
+                      />
+                    ))}
+                  </Box>
+                ) : (
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    ジャンル: 不明
+                  </Typography>
+                )}
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  {game.description}
+                  {game.description || '説明無し'}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
                   <Typography
@@ -394,23 +418,23 @@ const BoardGameList: React.FC<Props> = ({ isAdmin }) => {
                     おすすめ度:
                   </Typography>
                   <Rating
-                    value={game.recommendation}
+                    value={game.recommendation || 0}
                     readOnly
                     precision={0.1}
                     size="small"
                   />
                 </Box>
                 <Typography variant="body2" color="text.secondary">
-                  プレイ人数: {game.playerCount.text}
+                  プレイ人数: {game.playerCount?.text || '不明'}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  プレイ時間: {game.playTime.text}
+                  プレイ時間: {game.playTime?.text || '不明'}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  年齢: {game.age.text}
+                  年齢: {game.age?.text || '不明'}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  難易度: {game.difficulty}
+                  難易度: {game.difficulty || '不明'}
                 </Typography>
               </CardContent>
             </Card>
