@@ -2,7 +2,7 @@
 
 ## 概要
 Terraformを使ってWebサイトを構築するための具体的な手順の概要を以下に示す。
-ここでは、AWSをクラウドプロバイダーとして使用し、Amazon S3、CloudFront、API Gateway、Lambda、DynamoDBなどのサービスを利用する。
+ここでは、AWSをクラウドプロバイダーとして使用し、Amazon S3、CloudFront、Lambda、DynamoDBなどのサービスを利用する。
 
 ## 手順の概要
 1. Terraformのインストール
@@ -10,12 +10,11 @@ Terraformを使ってWebサイトを構築するための具体的な手順の�
 1. AWSプロバイダーの設定
 1. S3バケットの作成
 1. CloudFrontディストリビューションの設定
-1. API Gatewayの設定
-1. Lambda関数の設定
 1. DynamoDBテーブルの作成
 1. Route 53の設定
 1. CloudWatchの設定
 1. Terraformの実行
+1. Lambda関数の設定
 
 ## 手順詳細
 
@@ -69,24 +68,17 @@ resource "aws_s3_bucket" "website_bucket" {
 1. CloudFrontディストリビューションの設定
 CloudFrontディストリビューションを設定し、S3バケットから静的ファイルを配信します。
 
-1. API Gatewayの設定
-API Gatewayを設定し、Lambda関数にリクエストをルーティングします。
-
-1 vulnerability
-7. Lambda関数の設定
-Lambda関数を設定し、APIの処理ロジックを実行します。
-
-8. DynamoDBテーブルの作成
+1. DynamoDBテーブルの作成
 DynamoDBテーブルを作成し、ボードゲーム情報を保存します。
 
-9. Route 53の設定
+1. Route 53の設定
 Route 53を設定し、独自ドメインを管理します。
 
-10. CloudWatchの設定
+1. CloudWatchの設定
 CloudWatchを設定し、各AWSリソースのメトリクスを監視します。
 
-11. Terraformの実行
+1. Terraformの実行
 Terraformを実行して、インフラを構築します。
 
-まとめ
-これで、Terraformを使ってAWS上にWebサイトを構築する手順の概要が完了です。各ステップで必要なリソースを定義し、Terraformを実行することで、インフラを自動的に構築できます。プロジェクトの要件に応じて、設定をカスタマイズしてください。
+1. Lambda関数の設定
+Lambda関数はTerraformではなく、Serverless Frameworkを利用して構築します。

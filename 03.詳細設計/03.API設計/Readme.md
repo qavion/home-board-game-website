@@ -126,4 +126,5 @@ DynamoDBに格納されたボードゲーム情報を取得するためのAPI。
 
 * バックエンド: Python 3
 * データベース: DynamoDB
-* AWS Lambda, API Gateway
+* AWS Lambda
+* 構成管理：Serverless Framework

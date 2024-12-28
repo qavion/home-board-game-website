@@ -47,9 +47,9 @@
 
 #### バックエンド
 
-* **API エンドポイント:** Amazon API Gateway
+* **API エンドポイント:** Amazon Lambda関数URL
     * フロントエンドからのリクエストを受け付け、Lambda 関数にルーティング
-    * 必要に応じて、API キーや IAM 認証などを導入し、セキュリティ強化を検討
+    * API キーを導入しセキュリティ強化
 * **サーバーレス関数:** AWS Lambda
     * Python で記述された API の処理ロジックを実行
 * **データベース:** Amazon DynamoDB

@@ -1,6 +1,6 @@
 # 我が家ボドゲカフェ計画
 
-AWS（Lambda、API Gateway、DynamoDB、S3）、React、Terraformを使用したフルスタックWeb開発のスキルを示すポートフォリオプロジェクトです。  
+AWS（Lambda、DynamoDB、S3）、React（TypeScript）、Terraformを使用したフルスタックWeb開発のスキルを示すポートフォリオプロジェクトです。  
 このウェブサイトはボードゲームカタログを提供し、友人とのボードゲーム会の体験を向上させることを目指しています。
 
 ## 機能（フェーズ1）
@@ -18,12 +18,12 @@ AWS（Lambda、API Gateway、DynamoDB、S3）、React、Terraformを使用した
 
 ## 技術スタック
 
-* フロントエンド：React
+* フロントエンド：React + TypeScript
 * バックエンド：Python 3（AWS Lambdaを使用したサーバーレスアーキテクチャ）
 * データベース：AWS DynamoDB
 * ストレージ：AWS S3
 * Infrastructure as Code：Terraform
-* デプロイ：AWS CloudFront、API Gateway、Route 53
+* デプロイ：AWS CloudFront、Route 53
 
 ### 構成
 
