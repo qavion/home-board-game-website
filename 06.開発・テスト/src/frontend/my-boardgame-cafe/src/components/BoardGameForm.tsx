@@ -20,8 +20,6 @@ import {
   addBoardGame,
 } from '../contexts/BoardGameContext';
 import InputKeyToHiragana from './InputKeyToHiragana';
-import { set } from 'react-hook-form';
-import { TempleBuddhist } from '@mui/icons-material';
 
 interface BoardGameFormProps {
   isEditMode: boolean;
@@ -268,8 +266,7 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
     }
   }
 
-  const tryAutoConvertToHiragana = () => {
-    console.log(inputKey);
+  const convertAndSetTitleKana = () => {
     if (inputKey.length === 0 || titleKana !== '') {
       setInputKey([]);
       return;
@@ -277,6 +274,7 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
     let tempTable: any = InputKeyToHiragana;
     let tempTitleKana = '';
     let prevKey = '';
+    const hiraganaRegex = /^\p{sc=Hiragana}+$/u;
     for (const key of inputKey) {
       if (key in tempTable) {
         tempTable = tempTable[key];
@@ -295,6 +293,9 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
         } else {
           tempTable = InputKeyToHiragana;
         }
+      } else if (hiraganaRegex.test(key)) {
+        tempTitleKana += key;
+        tempTable = InputKeyToHiragana;
       } else {
         tempTable = InputKeyToHiragana;
       }
@@ -311,7 +312,7 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
           value={title}
           onChange={(e) => inputTitle(e)}
           onKeyUp={(e) => inputTitleKeyUp(e)}
-          onBlur={() => tryAutoConvertToHiragana()}
+          onBlur={() => convertAndSetTitleKana()}
           fullWidth
           margin="normal"
           slotProps={{

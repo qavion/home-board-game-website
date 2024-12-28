@@ -27,3 +27,6 @@ dist-ssr
 
 # environment
 .env
+
+# deploy script
+deploy-s3.sh

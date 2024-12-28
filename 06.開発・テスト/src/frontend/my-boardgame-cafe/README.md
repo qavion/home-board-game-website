@@ -4,74 +4,64 @@
 
 ## はじめに
 
-開発を始めるには、以下の手順に従ってください：
+開発を始めるには、以下の手順に従ってください
 
-1. リポジトリをクローンします
+1. リポジトリをクローン
    ```sh
-   git clone https://github.com/yourusername/my-boardgame-cafe.git
-   cd my-boardgame-cafe
+   git clone https://github.com/qavion/home-board-game-website.git
+   cd .\06.開発・テスト\src\frontend\my-boardgame-cafe\
    ```
 
-2. 依存関係をインストールします
+2. 依存関係をインストール
 
    ```
    npm install
    ```
 
-3. 開発サーバーを起動します
+3. 開発サーバーを起動
 
    ```
    npm run dev
    ```
 
+## ビルド
 
-# React + TypeScript + Vite
+1. フロントエンドをビルド
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+   ```
+   npm run build
+   ```
 
-Currently, two official plugins are available:
+## デプロイ (npm runコマンドを利用する方法)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+0. 事前準備
+   1. （未インストールの場合） awscli をインストールする
+   2. （未作成の場合）AWSの該当環境のIAMユーザーのアクセスキーを取得する
+      1. Access Key ID と Secret Access Key を控えておく
+   3. `aws configure` コマンドで、Access Key ID と Secret Access Key を設定する
+      1. `aws s3 ls` コマンドで該当環境のバケット一覧が表示されていればOK
+   4. デプロイ用のシェルスクリプトを用意する
+      1. build場所と同じ階層に以下ファイル `deploy-s3.sh` を用意 (Windowsの場合、Powershell等を利用する場合。必要に応じてbatファイルなどに変更する)
+         ```sh
+         #!/bin/sh
+         aws s3 rm s3://<Your S3 Bucket Name>/ --exclude "images/*" --recursive
+         aws s3 cp dist s3://<Your S3 Bucket Name>/ --recursive
+         ```
+         ※ 外部から追加する images フォルダ配下は削除対象外としている
+   5. package.json の scripts に以下を追記
+      ```json
+      {
+        ...
+        "scripts": {
+          ...,
+          "deploy": "deploy-s3.sh"
+        },
+        ...
+      }
+      ```
 
-## Expanding the ESLint configuration
+1. フロントエンドをデプロイ
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
-
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+   ```
+   npm run deploy
+   ```
