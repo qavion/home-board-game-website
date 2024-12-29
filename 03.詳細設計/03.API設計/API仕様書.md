@@ -44,7 +44,10 @@
                     "text": (string)
                 },
                 "difficulty": (string),
-                "recommendation": (number)
+                "recommendation": (number),
+                "arrivalDate": (string),
+                "created": (string),
+                "lastModified": (string)
             }
             ```
     * 失敗時
@@ -105,7 +108,10 @@
                         "text": (string)
                     },
                     "difficulty": (string),
-                    "recommendation": (number)
+                    "recommendation": (number),
+                    "arrivalDate": (string),
+                    "created": (string),
+                    "lastModified": (string)
                 },
                 {
                     // ...他のボードゲーム情報
@@ -155,7 +161,8 @@
                 "text": (string)
             },
             "difficulty": (string),
-            "recommendation": (number)
+            "recommendation": (number),
+            "arrivalDate": (string)
         }
         ```
     * id はサーバーで採番（最小の未使用整数ID）
@@ -189,7 +196,10 @@
                     "text": (string)
                 },
                 "difficulty": (string),
-                "recommendation": (number)
+                "recommendation": (number),
+                "arrivalDate": (string),
+                "created": (string),
+                "lastModified": (string)
             }
             ```
     * 失敗時
@@ -205,7 +215,7 @@
 
 #### 2.4. ボードゲーム更新API
 
-* **エンド��イント:** 
+* **エンドポイント:** 
     * `PUT /boardgames/{id}`
 * **メソッド:** 
     * PUT
@@ -236,7 +246,8 @@
                 "text": (string)
             },
             "difficulty": (string),
-            "recommendation": (number)
+            "recommendation": (number),
+            "arrivalDate": (string)
         }
         ```
 * **レスポンス:** 
@@ -269,7 +280,10 @@
                     "text": (string)
                 },
                 "difficulty": (string),
-                "recommendation": (number)
+                "recommendation": (number),
+                "arrivalDate": (string),
+                "created": (string),
+                "lastModified": (string)
             }
             ```
     * 失敗時
@@ -458,7 +472,15 @@
 
 ### 3. 認証・認可
 
-* クレデンシャルな情報は提供しないが、ランダムなアクセスを防ぐためにAPIキーをHTTPヘッダーに設定する。（例： `X-Api-Key: YOUR_API_KEY`）
+* クレデンシャルな情報は提供しないが、ランダムなアクセスを防ぐためにAPIキーをHTTPヘッダーに設定する。
+  * 例： `X-Api-Key: YOUR_API_KEY`
+* 追加、更新、削除、画像アップロード用URL取得APIについて、管理者のみのアクセスを許可する。
+  * リクエストヘッダー: Basic認証情報（Base64エンコードされたユーザー名とパスワード）
+    * 例
+      ```
+      "Authorization": "Basic XXXXXXXXXXXXXXXXXXXX"
+      ```
+* 認証情報が無効な場合、401 Unauthorized を返す。
 
 ### 4. その他の考慮事項
 

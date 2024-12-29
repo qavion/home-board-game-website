@@ -26,6 +26,7 @@ interface Props {
   children?: React.ReactElement<any>;
   label: string;
   toggleTheme: () => void;
+  setIsAdmin: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 function HideOnScroll(props: Props) {
@@ -78,6 +79,10 @@ function ScrollTop(props: Props) {
 const Header: React.FC<Props> = (props: Props) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const { toggleTheme, setIsAdmin } = props;
+  const { label } = props;
+  const theme = useTheme();
+  const isAdmin = localStorage.getItem('authHeader') !== null;
 
   const handleLogoClick = () => {
     navigate('/');
@@ -98,14 +103,16 @@ const Header: React.FC<Props> = (props: Props) => {
 
   const handleLogout = () => {
     localStorage.removeItem('authHeader');
-    navigate('/');
+    setIsAdmin(false);
+    const currentPath = window.location.pathname;
+    if (
+      currentPath.includes('/boardgames/') &&
+      (currentPath.includes('/edit') || currentPath.includes('/new'))
+    ) {
+      navigate('/');
+    }
     handleMenuClose();
   };
-
-  const { toggleTheme } = props;
-  const { label } = props;
-  const theme = useTheme();
-  const isAdmin = localStorage.getItem('authHeader') !== null;
 
   return (
     <>

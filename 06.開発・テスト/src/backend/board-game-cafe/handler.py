@@ -2,15 +2,15 @@
 
 import json
 import os
+import re
 import uuid
 from base64 import b64decode
 from decimal import Decimal
 from typing import Any, Dict
+import datetime
 
 import boto3
 from botocore.config import Config
-
-# from boto3.dynamodb.conditions import Key, Attr
 
 dynamodb = boto3.resource("dynamodb")
 table_name = os.environ["DYNAMODB_TABLE_NAME"]
@@ -19,6 +19,12 @@ my_config = Config(region_name="ap-northeast-1", signature_version="s3v4")
 s3_client = boto3.client("s3", config=my_config)
 bucket_name = os.environ["S3_BUCKET_NAME"]
 s3_image_path = os.environ["S3_IMAGE_PATH"]
+
+admin_request_patterns = {
+    "PUT": [re.compile(p) for p in [r"^/boardgames/.*$"]],
+    "POST": [re.compile(p) for p in [r"^/boardgames$", r"^/boardgames/presigned-url$"]],
+    "DELETE": [re.compile(p) for p in [r"^/boardgames/.*$"]],
+}
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -55,6 +61,18 @@ def check_api_key(event: Dict[str, Any]) -> bool:
     return headers["x-api-key"] == api_key
 
 
+def check_authorization(event: Dict[str, Any]) -> bool:
+    """Check if the user is an admin"""
+    auth_header = event["headers"].get("authorization")
+    if not auth_header or not auth_header.startswith("Basic "):
+        return False
+
+    admin_username = os.environ.get("ADMIN_USERNAME")
+    admin_password = os.environ.get("ADMIN_PASSWORD")
+    username, password = b64decode(auth_header[6:]).decode().split(":")
+    return username == admin_username and password == admin_password
+
+
 def get_all_board_game() -> Dict[str, Any]:
     """
     Get all board game data from DynamoDB.
@@ -75,6 +93,9 @@ def get_all_board_game() -> Dict[str, Any]:
             "age",
             "difficulty",
             "recommendation",
+            "created",
+            "lastModified",
+            "arrivalDate",
         ]
     )
     try:
@@ -135,6 +156,7 @@ def put_board_game(board_game_id: int, event: Dict[str, Any]) -> Dict[str, Any]:
             "difficulty": str,
             "recommendation": Decimal,
             "rules": str,
+            "arrivalDate": str,
         }
         required_object_elements = {
             "playerCount": ["min", "max", "text"],
@@ -172,6 +194,10 @@ def put_board_game(board_game_id: int, event: Dict[str, Any]) -> Dict[str, Any]:
             )
 
         # update the board game data
+        utc = datetime.timezone.utc
+        body_dict["lastModified"] = datetime.datetime.now(utc).isoformat()
+        if response["Item"].get("created") is None:
+            body_dict["created"] = body_dict["lastModified"]
         update_expr = f"SET {', '.join(f'#{k} = :{k}' for k in body_dict)}"
         # for using DynamoDB reserved keywords, use ExpressionAttributeNames
         expression_attr_names = {f"#{k}": k for k in body_dict}
@@ -203,7 +229,10 @@ def post_board_game(event: Dict[str, Any]) -> Dict[str, Any]:
     try:
         body_dict = json.loads(event["body"], parse_float=Decimal)
         board_game_id = get_next_board_game_id()
+        current_time = datetime.datetime.now(datetime.timezone.utc).isoformat()
         body_dict["id"] = board_game_id
+        body_dict["created"] = current_time
+        body_dict["lastModified"] = current_time
 
         table.put_item(Item=body_dict)
         return make_response(201, body_dict)
@@ -279,14 +308,7 @@ def get_presigned_url(event: Dict[str, Any]) -> Dict[str, Any]:
 def login(event: Dict[str, Any]) -> Dict[str, Any]:
     """Handle login request and check if the user is an admin"""
     try:
-        auth_header = event["headers"].get("authorization")
-        if not auth_header or not auth_header.startswith("Basic "):
-            return make_response(401, {"login": "NG", "isAdmin": False})
-
-        admin_username = os.environ.get("ADMIN_USERNAME")
-        admin_password = os.environ.get("ADMIN_PASSWORD")
-        username, password = b64decode(auth_header[6:]).decode().split(":")
-        if username == admin_username and password == admin_password:
+        if check_authorization(event):
             return make_response(200, {"login": "OK", "isAdmin": True})
         else:
             return make_response(401, {"login": "NG", "isAdmin": False})
@@ -306,6 +328,14 @@ def board_game_cafe(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         return make_response(403, {"error": "Forbidden"})
 
     path = event["requestContext"]["http"]["path"]
+
+    if (
+        method in admin_request_patterns
+        and any(p.match(path) for p in admin_request_patterns[method])
+        and not check_authorization(event)
+    ):
+        return make_response(401, {"error": "Unauthorized"})
+
     if method == "GET":
         if path == "/boardgames":
             # GET /boardgames

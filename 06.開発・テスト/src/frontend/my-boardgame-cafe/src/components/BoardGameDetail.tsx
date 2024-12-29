@@ -14,6 +14,11 @@ import {
   AccordionSummary,
   AccordionDetails,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
@@ -31,6 +36,7 @@ const BoardGameDetail: React.FC<Props> = (props: Props) => {
   const { id } = useParams<{ id: string }>();
   const { state, dispatch } = useBoardGameContext();
   const [loading, setLoading] = useState(true);
+  const [openConfirm, setOpenConfirm] = useState(false);
   const navigate = useNavigate();
 
   const { isAdmin } = props;
@@ -46,8 +52,18 @@ const BoardGameDetail: React.FC<Props> = (props: Props) => {
     loadBoardGame();
   }, [dispatch, id]);
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
+    setOpenConfirm(true);
+  };
+
+  const handleConfirmDelete = async () => {
     await deleteBoardGame(dispatch, Number(id));
+    setOpenConfirm(false);
+    navigate('/');
+  };
+
+  const handleCancelDelete = () => {
+    setOpenConfirm(false);
   };
 
   const handleEdit = () => {
@@ -154,6 +170,27 @@ const BoardGameDetail: React.FC<Props> = (props: Props) => {
           <Typography variant="body2" color="text.secondary">
             難易度: {game.difficulty || '不明'}
           </Typography>
+          <Typography variant="body2" color="text.secondary">
+            作成日時: {' '}
+            {(game.created &&
+              new Date(game.created).toLocaleString('ja-JP', {
+                dateStyle: 'short',
+                timeStyle: 'short',
+              })) ||
+              '-'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            最終更新日時: {' '}
+            {(game.lastModified &&
+              new Date(game.lastModified).toLocaleString('ja-JP', {
+                dateStyle: 'short',
+                timeStyle: 'short',
+              })) ||
+              '-'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            入荷日: {game.arrivalDate ? new Date(game.arrivalDate).toLocaleDateString() : '不明'}
+          </Typography>
           <Accordion sx={{ mt: 2 }}>
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
@@ -176,12 +213,10 @@ const BoardGameDetail: React.FC<Props> = (props: Props) => {
             </AccordionDetails>
           </Accordion>
           {isAdmin && (
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleEdit}
-              >
+            <Box
+              sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}
+            >
+              <Button variant="contained" color="primary" onClick={handleEdit}>
                 編集
               </Button>
               <Button
@@ -195,6 +230,25 @@ const BoardGameDetail: React.FC<Props> = (props: Props) => {
           )}
         </CardContent>
       </Card>
+      <Dialog
+        open={openConfirm}
+        onClose={handleCancelDelete}
+      >
+        <DialogTitle>{"削除の確認"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            ボードゲーム {game.title} を削除しますか？
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelDelete} color="primary">
+            キャンセル
+          </Button>
+          <Button onClick={handleConfirmDelete} color="secondary" autoFocus>
+            削除
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

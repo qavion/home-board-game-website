@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Route, Routes, Navigate, useParams } from 'react-router-dom';
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+  Navigate,
+  useParams,
+} from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import { Container } from '@mui/material';
 import { CssBaseline } from '@mui/material';
@@ -30,7 +36,11 @@ const App: React.FC = () => {
       path: '/',
       element: (
         <>
-          <Header toggleTheme={toggleTheme} label={'ボードゲーム一覧'} />
+          <Header
+            toggleTheme={toggleTheme}
+            setIsAdmin={setIsAdmin}
+            label={'ボードゲーム一覧'}
+          />
           <BoardGameList isAdmin={isAdmin} />
         </>
       ),
@@ -39,7 +49,11 @@ const App: React.FC = () => {
       path: '/boardgames/:id',
       element: (
         <>
-          <Header toggleTheme={toggleTheme} label={'ボードゲーム詳細'} />
+          <Header
+            toggleTheme={toggleTheme}
+            setIsAdmin={setIsAdmin}
+            label={'ボードゲーム詳細'}
+          />
           <BoardGameDetail isAdmin={isAdmin} />
         </>
       ),
@@ -48,7 +62,11 @@ const App: React.FC = () => {
       path: '/login',
       element: (
         <>
-          <Header toggleTheme={toggleTheme} label={'管理者用ログイン'} />
+          <Header
+            toggleTheme={toggleTheme}
+            setIsAdmin={setIsAdmin}
+            label={'管理者用ログイン'}
+          />
           <Login setIsAdmin={setIsAdmin} />
         </>
       ),
@@ -57,7 +75,11 @@ const App: React.FC = () => {
       path: '/boardgames/:id/edit',
       element: isAdmin ? (
         <>
-          <Header toggleTheme={toggleTheme} label={'ボードゲーム編集'} />
+          <Header
+            toggleTheme={toggleTheme}
+            setIsAdmin={setIsAdmin}
+            label={'ボードゲーム編集'}
+          />
           <BoardGameEdit />
         </>
       ) : (
@@ -68,7 +90,11 @@ const App: React.FC = () => {
       path: '/boardgames/new',
       element: isAdmin ? (
         <>
-          <Header toggleTheme={toggleTheme} label={'ボードゲーム追加'} />
+          <Header
+            toggleTheme={toggleTheme}
+            setIsAdmin={setIsAdmin}
+            label={'ボードゲーム追加'}
+          />
           <BoardGameAdd />
         </>
       ) : (

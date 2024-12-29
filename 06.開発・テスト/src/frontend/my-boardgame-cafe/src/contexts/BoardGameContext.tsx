@@ -25,6 +25,9 @@ export interface BoardGame {
   };
   difficulty: string;
   recommendation: number;
+  arrivalDate: string;
+  created: string;
+  lastModified: string;
 }
 
 interface BoardGameState {
@@ -122,7 +125,6 @@ export const fetchBoardGames = async (
     if (!response.ok) {
       throw new Error('Failed to fetch board games');
     }
-    console.log(response);
     const data = await response.json();
     dispatch({ type: 'FETCH_GAMES_SUCCESS', payload: data });
   } catch (error) {
@@ -137,14 +139,15 @@ export const fetchBoardGames = async (
 export const fetchBoardGame = async (
   dispatch: React.Dispatch<BoardGameAction>,
   id: string,
-  // authHeader?: string,
 ) => {
   dispatch({ type: 'FETCH_GAMES_START' });
   const apiEndpoint = import.meta.env.VITE_API_ENDPOINT;
+  const authHeader = localStorage.getItem('authHeader') || '';
   try {
     const response = await fetch(apiEndpoint + `/boardgames/${id}`, {
       headers: {
         'x-api-key': import.meta.env.VITE_API_KEY,
+        'Authorization': authHeader,
       },
       mode: 'cors',
     });
@@ -164,7 +167,7 @@ export const fetchBoardGame = async (
 
 export const addBoardGame = async (
   dispatch: React.Dispatch<BoardGameAction>,
-  newGame: Omit<BoardGame, 'id'>,
+  newGame: Omit<BoardGame, 'id' | 'created' | 'lastModified'>,
 ) => {
   const apiEndpoint = import.meta.env.VITE_API_ENDPOINT;
   const authHeader = localStorage.getItem('authHeader') || '';
@@ -222,12 +225,14 @@ export const updateBoardGame = async (
   updatedGame: PartialBoardGame,
 ) => {
   const apiEndpoint = import.meta.env.VITE_API_ENDPOINT;
+  const authHeader = localStorage.getItem('authHeader') || '';
   try {
     const response = await fetch(apiEndpoint + `/boardgames/${updatedGame.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': import.meta.env.VITE_API_KEY,
+        'Authorization': authHeader,
       },
       body: JSON.stringify(updatedGame),
       mode: 'cors',

@@ -31,11 +31,13 @@ const Login: React.FC<Props> = ( props: Props ) => {
         if (data.login === 'OK' && data.isAdmin) {
           localStorage.setItem('authHeader', authHeader);
           setIsAdmin(true);
-          navigate('/');
+          navigate(-1);
         } else {
+          setIsAdmin(false);
           alert('ログインに失敗しました');
         }
       } catch (error) {
+        console.error(error);
         alert('エラーが発生しました');
       }
     } else {

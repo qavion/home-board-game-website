@@ -41,6 +41,9 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
   const [age, setAge] = useState({ min: 0, text: '' });
   const [difficulty, setDifficulty] = useState('');
   const [recommendation, setRecommendation] = useState(0);
+  const [arrivalDate, setArrivalDate] = useState(
+    new Date().toISOString().slice(0, 10),
+  );
   const [newGenre, setNewGenre] = useState('');
   const [newTag, setNewTag] = useState('');
   const [newImage, setNewImage] = useState('');
@@ -77,6 +80,7 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
         setAge(game.age);
         setDifficulty(game.difficulty);
         setRecommendation(game.recommendation);
+        setArrivalDate(game.arrivalDate);
       }
     }
   }, [state.boardGames, id, isEditMode]);
@@ -106,6 +110,7 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
     if (difficulty !== game.difficulty) updatedGame.difficulty = difficulty;
     if (recommendation !== game.recommendation)
       updatedGame.recommendation = recommendation;
+    if (arrivalDate !== game.arrivalDate) updatedGame.arrivalDate = arrivalDate;
 
     return updatedGame;
   };
@@ -127,6 +132,7 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
         playerCount,
         playTime,
         age,
+        arrivalDate,
         difficulty,
         recommendation,
       };
@@ -264,7 +270,7 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
     if (e.key in InputKeyToHiragana) {
       setInputKey([...inputKey, e.key]);
     }
-  }
+  };
 
   const convertAndSetTitleKana = () => {
     if (inputKey.length === 0 || titleKana !== '') {
@@ -302,7 +308,7 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
     }
     setTitleKana(tempTitleKana);
     setInputKey([]);
-  }
+  };
 
   return (
     <Container>
@@ -320,7 +326,7 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
               endAdornment: title && (
                 <InputAdornment position="end">
                   <IconButton onClick={() => setTitle('')}>
-                    <ClearIcon sx={{ fontSize: 16 }}/>
+                    <ClearIcon sx={{ fontSize: 16 }} />
                   </IconButton>
                 </InputAdornment>
               ),
@@ -338,7 +344,7 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
               endAdornment: titleKana && (
                 <InputAdornment position="end">
                   <IconButton onClick={() => setTitleKana('')}>
-                    <ClearIcon sx={{ fontSize: 16 }}/>
+                    <ClearIcon sx={{ fontSize: 16 }} />
                   </IconButton>
                 </InputAdornment>
               ),
@@ -554,6 +560,20 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
           fullWidth
           margin="normal"
         />
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <TextField
+            label="入荷日"
+            type="date"
+            value={arrivalDate}
+            onChange={(e) =>
+              setArrivalDate(
+                new Date(e.target.value).toISOString().slice(0, 10),
+              )
+            }
+            fullWidth
+            margin="normal"
+          />
+        </Box>
         <Box
           sx={{
             display: 'flex',
