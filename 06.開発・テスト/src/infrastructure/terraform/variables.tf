@@ -77,3 +77,14 @@ variable "admin_auth_password" {
   description = "The password for the admin authentication"
   sensitive   = true
 }
+
+variable "aws_account_id" {
+  type        = string
+  description = "The AWS account ID"
+}
+
+variable "lambda_function_name" {
+  type        = string
+  description = "The name of the Lambda function"
+  default     = "image-resizer"
+}

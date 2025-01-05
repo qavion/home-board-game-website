@@ -19,6 +19,7 @@ my_config = Config(region_name="ap-northeast-1", signature_version="s3v4")
 s3_client = boto3.client("s3", config=my_config)
 bucket_name = os.environ["S3_BUCKET_NAME"]
 s3_image_path = os.environ["S3_IMAGE_PATH"]
+original_dir = os.environ["ORIGINAL_DIR"]
 
 admin_request_patterns = {
     "PUT": [re.compile(p) for p in [r"^/boardgames/.*$"]],
@@ -270,7 +271,7 @@ def get_presigned_url(event: Dict[str, Any]) -> Dict[str, Any]:
         else:
             file_name = body_dict["fileName"]
         content_type = body_dict["contentType"]
-        path = f"{s3_image_path}/{file_name}"
+        path = f"{s3_image_path}/{original_dir}/{file_name}"
         # check file name and content type
         if not content_type:
             return make_response(400, {"error": "Content type is required"})

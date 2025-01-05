@@ -1,13 +1,11 @@
-# "org" ensures this Service is used with the correct Serverless Framework Access Key.
-org: qavion
-# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
-app: board-game-cafe
-# "service" is the name of this project. This will also be added to your AWS resource names.
-service: board-game-cafe
+org: ${self:custom.org}
+app: ${self:custom.app}
+service: ${self:custom.service}
 
 provider:
   name: aws
   runtime: python3.12
+  architecture: arm64
   region: ap-northeast-1
   profile: default
   iam:
@@ -21,10 +19,15 @@ provider:
             - "dynamodb:PutItem"
             - "dynamodb:UpdateItem"
             - "dynamodb:DeleteItem"
-          Resource: 
+          Resource:
             - "arn:aws:dynamodb:ap-northeast-1:*:table/${self:custom.dynamodbTableName}"
             - "arn:aws:dynamodb:ap-northeast-1:*:table/${self:custom.dynamodbTableName}/index/*"
             - "arn:aws:s3:::${self:custom.s3BucketName}/*"
+        - Effect: "Allow"
+          Action:
+            - "lambda:InvokeFunction"
+          Resource:
+            - "arn:aws:lambda:ap-northeast-1:${self:custom.awsAccountId}:function:${self:custom.lambdaFunctionName}"
 
 functions:
   board_game_cafe:
@@ -36,14 +39,48 @@ functions:
       ALLOW_ORIGIN: ${self:custom.allowOrigin}
       S3_BUCKET_NAME: ${self:custom.s3BucketName}
       S3_IMAGE_PATH: ${self:custom.s3ImagePath}
+      ORIGINAL_DIR: ${self:custom.originalDir}
       ADMIN_USERNAME: ${self:custom.adminUsername}
       ADMIN_PASSWORD: ${self:custom.adminPassword}
+  image_resizer:
+    handler: image_resizer.handler
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+    environment:
+      S3_BUCKET_NAME: ${self:custom.s3BucketName}
+      S3_IMAGE_PATH: ${self:custom.s3ImagePath}
+      RESIZED_S_DIR: ${self:custom.resizedSDir}
+      RESIZED_M_DIR: ${self:custom.resizedMDir}
+
+resources:
+  Resources:
+    ResourceBasePermission:
+      Type: "AWS::Lambda::Permission"
+      Properties:
+        FunctionName: ${self:custom.lambdaFunctionName}
+        Action: "lambda:InvokeFunction"
+        Principal: "s3.amazonaws.com"
 
 custom:
+  org: ${file(./config.yml):org}
+  app: ${file(./config.yml):app}
+  service: ${file(./config.yml):service}
   dynamodbTableName: ${file(./config.yml):dynamodbTableName}
   apiKey: ${file(./config.yml):apiKey}
   allowOrigin: ${file(./config.yml):allowOrigin}
   s3BucketName: ${file(./config.yml):s3BucketName}
   s3ImagePath: ${file(./config.yml):s3ImagePath}
+  originalDir: ${file(./config.yml):originalDir}
+  resizedSDir: ${file(./config.yml):resizedSDir}
+  resizedMDir: ${file(./config.yml):resizedMDir}
   adminUsername: ${file(./config.yml):adminUsername}
   adminPassword: ${file(./config.yml):adminPassword}
+  awsAccountId: ${file(./config.yml):awsAccountId}
+  lambdaFunctionName: ${file(./config.yml):lambdaFunctionName}
+  pythonRequirements:
+    dockerImage: public.ecr.aws/sam/build-python3.12:latest-arm64
+    dockerizePip: true
+    layer: true
+
+plugins:
+  - serverless-python-requirements

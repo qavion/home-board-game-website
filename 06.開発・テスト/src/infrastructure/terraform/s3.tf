@@ -77,3 +77,13 @@ resource "aws_s3_bucket_cors_configuration" "site" {
     max_age_seconds = 3000
   }
 }
+
+resource "aws_s3_bucket_notification" "site" {
+  bucket = aws_s3_bucket.site.id
+
+  lambda_function {
+    lambda_function_arn = "arn:aws:lambda:ap-northeast-1:${var.aws_account_id}:function:${var.lambda_function_name}"
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "images/original/"
+  }
+}
