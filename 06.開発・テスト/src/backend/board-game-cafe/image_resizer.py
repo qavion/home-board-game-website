@@ -6,9 +6,30 @@ from typing import Any, Dict
 
 import boto3
 
-from PIL import Image
+from PIL import Image, ExifTags
 
 s3_client = boto3.client("s3")
+
+
+def correct_image_orientation(image: Image.Image) -> Image.Image:
+    """Correct the orientation of the image based on EXIF data."""
+    try:
+        for orientation in ExifTags.TAGS.keys():
+            if ExifTags.TAGS[orientation] == 'Orientation':
+                break
+        exif = image.getexif()
+        if exif is not None:
+            orientation = exif.get(orientation)
+            if orientation == 3:
+                image = image.rotate(180, expand=True)
+            elif orientation == 6:
+                image = image.rotate(270, expand=True)
+            elif orientation == 8:
+                image = image.rotate(90, expand=True)
+    except (AttributeError, KeyError, IndexError):
+        # cases: image don't have getexif
+        pass
+    return image
 
 
 def resize_image(image: Image.Image, size: tuple[int, int]) -> BytesIO:
@@ -35,10 +56,12 @@ def handler(event: Dict[str, Any], context: Any) -> None:
         content_type = response["ContentType"]
 
         if content_type not in valid_content_types:
+            print(f"Invalid content type: {content_type}. Resiezing skipped, file: {key}.")
             continue
 
         response = s3_client.get_object(Bucket=bucket_name, Key=key)
         image = Image.open(response["Body"])
+        image = correct_image_orientation(image)
 
         basename, _ = os.path.splitext(os.path.basename(key))
 

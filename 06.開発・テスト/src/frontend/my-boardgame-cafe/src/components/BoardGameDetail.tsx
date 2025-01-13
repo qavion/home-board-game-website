@@ -42,6 +42,8 @@ const BoardGameDetail: React.FC<Props> = (props: Props) => {
   const { isAdmin } = props;
 
   const cloudfrontDomain = import.meta.env.VITE_CLOUDFRONT_DOMAIN;
+  const s3ImagePath = import.meta.env.VITE_S3_IMAGE_PATH;
+  const s3OriginalDir = import.meta.env.VITE_S3_ORIGINAL_DIR;
 
   useEffect(() => {
     const loadBoardGame = async () => {
@@ -93,7 +95,7 @@ const BoardGameDetail: React.FC<Props> = (props: Props) => {
               component="img"
               alt={game.title}
               height="140"
-              image={`${cloudfrontDomain}/${game.images[0]}`}
+              image={`${cloudfrontDomain}/${s3ImagePath}/${s3OriginalDir}/${game.images[0]}`}
               sx={{
                 position: 'absolute',
                 top: 0,

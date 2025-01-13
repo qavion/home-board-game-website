@@ -42,7 +42,8 @@ type BoardGameAction =
   | { type: 'FETCH_GAMES_ERROR'; payload: string }
   | { type: 'ADD_GAME'; payload: BoardGame }
   | { type: 'DELETE_GAME'; payload: number }
-  | { type: 'UPDATE_GAME'; payload: BoardGame };
+  | { type: 'UPDATE_GAME'; payload: BoardGame }
+  | { type: 'SET_ALL_GAMES'; payload: BoardGame[] };
 
 const initialState: BoardGameState = {
   boardGames: [],
@@ -83,6 +84,8 @@ const boardGameReducer = (
           game.id === action.payload.id ? action.payload : game,
         ),
       };
+    case 'SET_ALL_GAMES':
+      return { ...state, boardGames: action.payload };
     default:
       return state;
   }
@@ -244,5 +247,31 @@ export const updateBoardGame = async (
     dispatch({ type: 'UPDATE_GAME', payload: data });
   } catch (error) {
     console.error('Error updating board game:', error);
+  }
+};
+
+export const fetchAllBoardGames = async (
+  dispatch: React.Dispatch<BoardGameAction>,
+) => {
+  dispatch({ type: 'FETCH_GAMES_START' });
+  const apiEndpoint = import.meta.env.VITE_API_ENDPOINT;
+  try {
+    const response = await fetch(apiEndpoint + '/boardgames', {
+      headers: {
+        'x-api-key': import.meta.env.VITE_API_KEY,
+      },
+      mode: 'cors',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch board games');
+    }
+    const data = await response.json();
+    dispatch({ type: 'SET_ALL_GAMES', payload: data });
+  } catch (error) {
+    dispatch({
+      type: 'FETCH_GAMES_ERROR',
+      payload:
+        error instanceof Error ? error.message : 'An unknown error occurred',
+    });
   }
 };

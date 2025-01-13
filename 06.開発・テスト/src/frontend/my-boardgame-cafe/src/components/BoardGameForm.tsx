@@ -18,6 +18,7 @@ import {
   fetchBoardGame,
   updateBoardGame,
   addBoardGame,
+  fetchAllBoardGames,
 } from '../contexts/BoardGameContext';
 import InputKeyToHiragana from './InputKeyToHiragana';
 
@@ -51,6 +52,8 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
   const navigate = useNavigate();
 
   const cloudfrontDomain = import.meta.env.VITE_CLOUDFRONT_DOMAIN;
+  const s3ImagePath = import.meta.env.VITE_S3_IMAGE_PATH;
+  const s3OriginalDir = import.meta.env.VITE_S3_ORIGINAL_DIR;
 
   useEffect(() => {
     if (isEditMode) {
@@ -61,6 +64,13 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
       loadBoardGame();
     }
   }, [dispatch, id, isEditMode]);
+
+  useEffect(() => {
+    const loadAllBoardGames = async () => {
+      await fetchAllBoardGames(dispatch);
+    };
+    loadAllBoardGames();
+  }, [dispatch]);
 
   useEffect(() => {
     if (isEditMode) {
@@ -165,18 +175,21 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
     setter(items.filter((item) => item !== itemToDelete));
   };
 
-  const handleAddImage = async (file: File) => {
+  const handleAddImage = async (file: File, id: string) => {
+    const previousImages = [...images];
     try {
       const apiEndpoint = import.meta.env.VITE_API_ENDPOINT;
+      const authHeader = localStorage.getItem('authHeader') || '';
       const response = await fetch(apiEndpoint + '/boardgames/presigned-url', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': import.meta.env.VITE_API_KEY,
+          'Authorization': authHeader,
         },
         mode: 'cors',
         body: JSON.stringify({
-          fileName: newImage || file.name,
+          fileName: newImage || `${id}_${file.name}`,
           contentType: file.type,
         }),
       });
@@ -200,9 +213,23 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
         throw new Error('Failed to upload image');
       }
 
-      setImages([...images, path]);
+      const fileName = path.split('/').pop() || '';
+      if (images.includes(fileName)) {
+        return;
+      }
+      if (fileName === '') {
+        throw new Error(`Failed to get filename from path: ${path}`);
+      }
+
+      setImages([...images, fileName]);
     } catch (error) {
       console.error('Error uploading image:', error);
+      setImages(previousImages);
+      if (error instanceof Error) {
+        alert(`Error uploading image: ${error.message}`);
+      } else {
+        alert('An unknown error occurred while uploading the image.');
+      }
     }
   };
 
@@ -391,7 +418,7 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
               accept="image/*"
               onChange={(e) => {
                 if (e.target.files && e.target.files[0]) {
-                  handleAddImage(e.target.files[0]);
+                  handleAddImage(e.target.files[0], id!);
                 }
               }}
             />
@@ -404,7 +431,7 @@ const BoardGameForm: React.FC<BoardGameFormProps> = ({ isEditMode }) => {
               sx={{ position: 'relative', display: 'inline-block' }}
             >
               <img
-                src={`${cloudfrontDomain}/${image}`}
+                src={`${cloudfrontDomain}/${s3ImagePath}/${s3OriginalDir}/${image}`}
                 alt={`thumbnail-${index}`}
                 style={{ width: 100, height: 100, objectFit: 'cover' }}
               />

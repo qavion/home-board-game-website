@@ -36,6 +36,9 @@ interface Props {
 
 const BoardGameList: React.FC<Props> = ({ isAdmin }) => {
   const cloudfrontDomain = import.meta.env.VITE_CLOUDFRONT_DOMAIN;
+  const s3ImagePath = import.meta.env.VITE_S3_IMAGE_PATH;
+  const s3ResizedMDir = import.meta.env.VITE_S3_RESIZED_M_DIR;
+
   const { state, dispatch } = useBoardGameContext();
   const [filterOpen, setFilterOpen] = useState(false);
   const [filter, setFilter] =
@@ -362,7 +365,7 @@ const BoardGameList: React.FC<Props> = ({ isAdmin }) => {
                       component="img"
                       alt={game.title}
                       height="140"
-                      image={`${cloudfrontDomain}/${game.images[0]}`}
+                      image={`${cloudfrontDomain}/${s3ImagePath}/${s3ResizedMDir}/${game.images[0].split('.').pop() ? game.images[0].replace(/\.[^/.]+$/, '.jpg') : `${game.images[0]}.jpg`}`}
                       sx={{
                         position: 'absolute',
                         top: 0,
@@ -474,7 +477,10 @@ const BoardGameList: React.FC<Props> = ({ isAdmin }) => {
                       '-'}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    入荷日: {game.arrivalDate ? new Date(game.arrivalDate).toLocaleDateString() : '不明'}
+                    入荷日:{' '}
+                    {game.arrivalDate
+                      ? new Date(game.arrivalDate).toLocaleDateString()
+                      : '不明'}
                   </Typography>
                 </CardContent>
               </Card>
