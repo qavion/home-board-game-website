@@ -16,6 +16,7 @@ import Header from './components/Header';
 import Login from './components/Login';
 import BoardGameEdit from './components/BoardGameEdit';
 import BoardGameAdd from './components/BoardGameAdd';
+import TopPage from './components/TopPage';
 import { darkTheme, lightTheme } from './theme';
 import { BoardGameProvider } from './contexts/BoardGameContext';
 
@@ -34,6 +35,19 @@ const App: React.FC = () => {
   const routes = [
     {
       path: '/',
+      element: (
+        <>
+          <Header
+            toggleTheme={toggleTheme}
+            setIsAdmin={setIsAdmin}
+            label={'トップページ'}
+          />
+          <TopPage />
+        </>
+      ),
+    },
+    {
+      path: '/boardgames',
       element: (
         <>
           <Header

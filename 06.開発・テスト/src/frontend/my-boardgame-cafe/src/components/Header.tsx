@@ -153,6 +153,9 @@ const Header: React.FC<Props> = (props: Props) => {
               onClose={handleMenuClose}
             >
               <MenuItem onClick={() => handleMenuItemClick('/')}>
+                トップページ
+              </MenuItem>
+              <MenuItem onClick={() => handleMenuItemClick('/boardgames')}>
                 ボードゲーム一覧
               </MenuItem>
               {isAdmin ? (
