@@ -61,6 +61,12 @@ variable "dynamodb_table_name" {
   default     = "BoardGamesTable"
 }
 
+variable "dynamodb_menu_table_name" {
+  type        = string
+  description = "The name of the DynamoDB table to store menu data"
+  default     = "MenuTable"
+}
+
 variable "cloudfront_logs_bucket_name" {
   type        = string
   description = "The name of the S3 bucket for CloudFront logs"

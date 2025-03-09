@@ -17,8 +17,10 @@ import Login from './components/Login';
 import BoardGameEdit from './components/BoardGameEdit';
 import BoardGameAdd from './components/BoardGameAdd';
 import TopPage from './components/TopPage';
+import MenuList from './components/MenuList';
 import { darkTheme, lightTheme } from './theme';
 import { BoardGameProvider } from './contexts/BoardGameContext';
+import { MenuProvider } from './contexts/MenuContext';
 
 const App: React.FC = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -115,6 +117,19 @@ const App: React.FC = () => {
         <RequireAuth />
       ),
     },
+    {
+      path: '/menu',
+      element: (
+        <>
+          <Header
+            toggleTheme={toggleTheme}
+            setIsAdmin={setIsAdmin}
+            label={'メニュー'}
+          />
+          <MenuList />
+        </>
+      ),
+    },
   ];
 
   return (
@@ -122,17 +137,19 @@ const App: React.FC = () => {
       <CssBaseline />
       <BrowserRouter>
         <BoardGameProvider>
-          <Container maxWidth="lg">
-            <Routes>
-              {routes.map((route) => (
-                <Route
-                  key={route.path}
-                  path={route.path}
-                  element={route.element}
-                />
-              ))}
-            </Routes>
-          </Container>
+          <MenuProvider>
+            <Container maxWidth="lg">
+              <Routes>
+                {routes.map((route) => (
+                  <Route
+                    key={route.path}
+                    path={route.path}
+                    element={route.element}
+                  />
+                ))}
+              </Routes>
+            </Container>
+          </MenuProvider>
         </BoardGameProvider>
       </BrowserRouter>
     </ThemeProvider>

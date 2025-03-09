@@ -17,6 +17,35 @@ Amazon S3 に格納する。
       └── resized-s/  # アップロードされた画像を自動で小サイズにリサイズした画像
 ```
 
+## メニュー用データ
+
+Amazon DynamoDB に以下の形式で格納する。
+
+### JSON形式での例と説明
+
+```jsonc
+{
+    "id": 1, // ID [パーティションキー] （サーバー側で自動採番）
+    "name": "コーヒー", // メニュー名
+    "type": "drink", // 種類（food または drink）
+    "description": "ホットコーヒー", // 説明
+    "price": 300, // 価格
+    "available": true // 利用可能かどうか
+}
+```
+
+### DynamoDB JSON 形式
+
+```json
+{
+  "id": { "N": "1" },
+  "name": { "S": "コーヒー" },
+  "type": { "S": "drink" },
+  "description": { "S": "ホットコーヒー" },
+  "price": { "N": "300" },
+  "available": { "BOOL": true }
+}
+```
 
 ## ボードゲームメタデータ
 

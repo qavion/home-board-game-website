@@ -13,7 +13,6 @@ import {
   BoardGame,
   fetchBoardGames,
 } from '../contexts/BoardGameContext';
-import '../index.css'; // CSSファイルをインポート
 
 const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 

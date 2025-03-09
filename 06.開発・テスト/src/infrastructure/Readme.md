@@ -77,8 +77,20 @@ Route 53を設定し、独自ドメインを管理します。
 1. CloudWatchの設定
 CloudWatchを設定し、各AWSリソースのメトリクスを監視します。
 
-1. Terraformの実行
+### Terraformの実行
+
 Terraformを実行して、インフラを構築します。
 
-1. Lambda関数の設定
+```sh
+# 初期化
+terraform init
+
+# プランの作成
+terraform plan -out=tfplan
+
+# プランの適用
+terraform apply tfplan
+```
+
+### Lambda関数の設定
 Lambda関数はTerraformではなく、Serverless Frameworkを利用して構築します。

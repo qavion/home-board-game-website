@@ -1,0 +1,18 @@
+[
+    {
+        "id": 1,
+        "name": "希望の雫",
+        "type": "drink",
+        "description": "ストレートリンゴジュース",
+        "price": 300,
+        "available": true
+    },
+    {
+        "id": 2,
+        "name": "カップ麺",
+        "type": "food",
+        "description": "カップ麺",
+        "price": 300,
+        "available": true
+    }
+]

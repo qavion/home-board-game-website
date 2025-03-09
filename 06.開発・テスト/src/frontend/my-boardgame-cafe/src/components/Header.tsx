@@ -152,18 +152,13 @@ const Header: React.FC<Props> = (props: Props) => {
               open={Boolean(anchorEl)}
               onClose={handleMenuClose}
             >
-              <MenuItem onClick={() => handleMenuItemClick('/')}>
-                トップページ
-              </MenuItem>
-              <MenuItem onClick={() => handleMenuItemClick('/boardgames')}>
-                ボードゲーム一覧
-              </MenuItem>
+              <MenuItem onClick={() => handleMenuItemClick('/')}>トップページ</MenuItem>
+              <MenuItem onClick={() => handleMenuItemClick('/boardgames')}>ボードゲーム一覧</MenuItem>
+              <MenuItem onClick={() => handleMenuItemClick('/menu')}>メニュー</MenuItem>
               {isAdmin ? (
                 <MenuItem onClick={handleLogout}>ログアウト</MenuItem>
               ) : (
-                <MenuItem onClick={() => handleMenuItemClick('/login')}>
-                  ログイン
-                </MenuItem>
+                <MenuItem onClick={() => handleMenuItemClick('/login')}>ログイン</MenuItem>
               )}
             </Menu>
           </Toolbar>

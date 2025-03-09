@@ -470,6 +470,246 @@
                 }
                 ```
 
+#### 2.8. メニューリスト取得API
+
+* **エンドポイント:** 
+    * `GET /menu`
+* **メソッド:** 
+    * GET
+* **パラメータ:** なし
+* **レスポンス:** 
+    * 成功時
+        * ステータスコード: 200 OK
+        * Content-Type: `application/json`
+        * レスポンスボディ: メニューリスト（JSON形式）
+            ```json
+            [
+                {
+                    "id": (integer),
+                    "name": (string),
+                    "type": (string),
+                    "description": (string),
+                    "price": (integer),
+                    "available": (boolean)
+                },
+                {
+                    // ...他のメニュー情報
+                }
+            ]
+            ```
+    * 失敗時
+        * サーバー側で予期せぬエラーが発生した場合
+            * ステータスコード: 500 Internal Server Error
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Internal server error"
+                }
+                ```
+
+#### 2.9. 個別メニュー情報取得API
+
+* **エンドポイント:** 
+    * `GET /menu/{id}`
+* **メソッド:** 
+    * GET
+* **パラメータ:** 
+    * `id` (path): 取得したいメニューのID (integer)
+* **レスポンス:** 
+    * 成功時
+        * ステータスコード: 200 OK
+        * Content-Type: `application/json`
+        * レスポンスボディ: 指定されたIDのメニュー情報（JSON形式）
+            ```json
+            {
+                "id": (integer),
+                "name": (string),
+                "type": (string),
+                "description": (string),
+                "price": (integer),
+                "available": (boolean)
+            }
+            ```
+    * 失敗時
+        * 指定されたIDのメニューが存在しない場合
+            * ステータスコード: 404 Not Found
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Menu item not found"
+                }
+                ```
+        * サーバー側で予期せぬエラーが発生した場合
+            * ステータスコード: 500 Internal Server Error
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Internal server error"
+                }
+                ```
+
+#### 2.10. 新規メニュー追加API
+
+* **エンドポイント:** 
+    * `POST /menu`
+* **メソッド:** 
+    * POST
+* **パラメータ:** 
+    * リクエストボディ: 新規追加するメニューの情報（JSON形式）
+        ```json
+        {
+            "name": (string),
+            "type": (string),
+            "description": (string),
+            "price": (integer),
+            "available": (boolean)
+        }
+        ```
+    * id はサーバーで採番（使用済み最大整数ID+1）
+* **レスポンス:** 
+    * 成功時
+        * ステータスコード: 201 Created
+        * Content-Type: `application/json`
+        * レスポンスボディ: 作成されたメニューの情報（JSON形式）
+            ```json
+            {
+                "id": (integer),
+                "name": (string),
+                "type": (string),
+                "description": (string),
+                "price": (integer),
+                "available": (boolean)
+            }
+            ```
+    * 失敗時
+        * サーバー側で予期せぬエラーが発生した場合
+            * ステータスコード: 500 Internal Server Error
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Internal server error"
+                }
+                ```
+
+#### 2.11. メニュー更新API
+
+* **エンドポイント:** 
+    * `PUT /menu/{id}`
+* **メソッド:** 
+    * PUT
+* **パラメータ:** 
+    * `id` (path): 更新したいメニューのID (integer)
+    * リクエストボディ: 更新するメニューの情報（JSON形式）
+        ```json
+        {
+            "name": (string),
+            "type": (string),
+            "description": (string),
+            "price": (integer),
+            "available": (boolean)
+        }
+        ```
+* **レスポンス:** 
+    * 成功時
+        * ステータスコード: 200 OK
+        * Content-Type: `application/json`
+        * レスポンスボディ: 更新されたメニューの情報（JSON形式）
+            ```json
+            {
+                "id": (integer),
+                "name": (string),
+                "type": (string),
+                "description": (string),
+                "price": (integer),
+                "available": (boolean)
+            }
+            ```
+    * 失敗時
+        * 指定されたIDのメニューが存在しない場合
+            * ステータスコード: 404 Not Found
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Menu item not found"
+                }
+                ```
+        * リクエストボディが無効な場合
+            * ステータスコード: 400 Bad Request
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Invalid key: {key}"
+                }
+                ```
+                ```json
+                {
+                    "error": "Invalid data type: {data_type}"
+                }
+                ```
+                ```json
+                {
+                    "error": "Missing required element in {key}: {element}"
+                }
+                ```
+                ```json
+                {
+                    "error": "Invalid data type. Expected {valid_types}"
+                }
+                ```
+        * サーバー側で予期せぬエラーが発生した場合
+            * ステータスコード: 500 Internal Server Error
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Internal server error"
+                }
+                ```
+
+#### 2.12. メニュー削除API
+
+* **エンドポイント:** 
+    * `DELETE /menu/{id}`
+* **メソッド:** 
+    * DELETE
+* **パラメータ:** 
+    * `id` (path): 削除したいメニューのID (integer)
+* **レスポンス:** 
+    * 成功時
+        * ステータスコード: 200 OK
+        * Content-Type: `application/json`
+        * レスポンスボディ:
+            ```json
+            {
+                "message": "Menu item deleted"
+            }
+            ```
+    * 失敗時
+        * 指定されたIDのメニューが存在しない場合
+            * ステータスコード: 404 Not Found
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Menu item not found"
+                }
+                ```
+        * サーバー側で予期せぬエラーが発生した場合
+            * ステータスコード: 500 Internal Server Error
+            * Content-Type: `application/json`
+            * レスポンスボディ:
+                ```json
+                {
+                    "error": "Internal server error"
+                }
+                ```
+
 ### 3. 認証・認可
 
 * クレデンシャルな情報は提供しないが、ランダムなアクセスを防ぐためにAPIキーをHTTPヘッダーに設定する。

@@ -21,10 +21,16 @@ bucket_name = os.environ["S3_BUCKET_NAME"]
 s3_image_path = os.environ["S3_IMAGE_PATH"]
 original_dir = os.environ["ORIGINAL_DIR"]
 
+menu_table_name = os.environ["DYNAMODB_MENU_TABLE_NAME"]
+menu_table = dynamodb.Table(menu_table_name)
+
 admin_request_patterns = {
-    "PUT": [re.compile(p) for p in [r"^/boardgames/.*$"]],
-    "POST": [re.compile(p) for p in [r"^/boardgames$", r"^/boardgames/presigned-url$"]],
-    "DELETE": [re.compile(p) for p in [r"^/boardgames/.*$"]],
+    "PUT": [re.compile(p) for p in [r"^/boardgames/.*$", r"^/menu/.*$"]],
+    "POST": [
+        re.compile(p)
+        for p in [r"^/boardgames$", r"^/boardgames/presigned-url$", r"^/menu$"]
+    ],
+    "DELETE": [re.compile(p) for p in [r"^/boardgames/.*$", r"^/menu/.*$"]],
 }
 
 
@@ -317,6 +323,96 @@ def login(event: Dict[str, Any]) -> Dict[str, Any]:
         return make_response(500, {"error": str(e)})
 
 
+def get_all_menu_items() -> Dict[str, Any]:
+    """Get all menu items from DynamoDB."""
+    try:
+        response = menu_table.scan()
+        data = response["Items"]
+        return make_response(200, data)
+    except Exception as e:
+        return make_response(500, {"error": str(e)})
+
+
+def get_menu_item(menu_item_id: int) -> Dict[str, Any]:
+    """Get menu item data from DynamoDB by id."""
+    try:
+        response = menu_table.get_item(Key={"id": menu_item_id})
+        if "Item" in response:
+            return make_response(200, response["Item"])
+        else:
+            return make_response(404, {"error": "Menu item not found"})
+    except Exception as e:
+        return make_response(500, {"error": str(e)})
+
+
+def post_menu_item(event: Dict[str, Any]) -> Dict[str, Any]:
+    """Add new menu item data to DynamoDB."""
+    try:
+        body_dict = json.loads(event["body"], parse_float=Decimal)
+        menu_item_id = get_next_menu_item_id()
+        current_time = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        body_dict["id"] = menu_item_id
+        body_dict["created"] = current_time
+        body_dict["lastModified"] = current_time
+
+        menu_table.put_item(Item=body_dict)
+        return make_response(201, body_dict)
+    except Exception as e:
+        return make_response(500, {"error": str(e)})
+
+
+def get_next_menu_item_id() -> int:
+    """Get the next available menu item ID."""
+    try:
+        response = menu_table.scan(ProjectionExpression="id")
+        ids = [item["id"] for item in response["Items"]]
+        return max(ids) + 1 if ids else 1
+    except Exception as e:
+        raise Exception(f"Error getting next menu item ID: {str(e)}") from e
+
+
+def put_menu_item(menu_item_id: int, event: Dict[str, Any]) -> Dict[str, Any]:
+    """Update menu item data in DynamoDB by id."""
+    try:
+        body_dict = json.loads(event["body"], parse_float=Decimal)
+
+        # check if the menu item exists
+        response = menu_table.get_item(Key={"id": menu_item_id})
+        if "Item" not in response:
+            return make_response(404, {"error": "Menu item not found"})
+        if "id" in body_dict and body_dict.pop("id") != menu_item_id:
+            message = f"Invalid ID: {body_dict['id']} != {menu_item_id}"
+            return make_response(400, {"error": message})
+
+        # update the menu item data
+        update_expr = f"SET {', '.join(f'#{k} = :{k}' for k in body_dict)}"
+        expression_attr_names = {f"#{k}": k for k in body_dict}
+        expression_attr_values = {f":{k}": v for k, v in body_dict.items()}
+        response = menu_table.update_item(
+            Key={"id": menu_item_id},
+            UpdateExpression=update_expr,
+            ExpressionAttributeNames=expression_attr_names,
+            ExpressionAttributeValues=expression_attr_values,
+            ReturnValues="ALL_NEW",
+        )
+        return make_response(200, response["Attributes"])
+    except Exception as e:
+        return make_response(500, {"error": str(e)})
+
+
+def delete_menu_item(menu_item_id: int) -> Dict[str, Any]:
+    """Delete menu item data from DynamoDB by id."""
+    try:
+        response = menu_table.get_item(Key={"id": menu_item_id})
+        if "Item" not in response:
+            return make_response(404, {"error": "Menu item not found"})
+
+        menu_table.delete_item(Key={"id": menu_item_id})
+        return make_response(200, {"message": "Menu item deleted"})
+    except Exception as e:
+        return make_response(500, {"error": str(e)})
+
+
 def board_game_cafe(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """Lambda handler function"""
     print(event)
@@ -345,11 +441,22 @@ def board_game_cafe(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             # GET /boardgames/{id}
             board_game_id = int(path.split("/")[-1])
             return get_board_game(board_game_id)
+        if path == "/menu":
+            # GET /menu
+            return get_all_menu_items()
+        if path.startswith("/menu/"):
+            # GET /menu/{id}
+            menu_item_id = int(path.split("/")[-1])
+            return get_menu_item(menu_item_id)
     if method == "PUT":
         if path.startswith("/boardgames/"):
             # PUT /boardgames/{id}
             board_game_id = int(path.split("/")[-1])
             return put_board_game(board_game_id, event)
+        if path.startswith("/menu/"):
+            # PUT /menu/{id}
+            menu_item_id = int(path.split("/")[-1])
+            return put_menu_item(menu_item_id, event)
     if method == "POST":
         if path == "/boardgames":
             # POST /boardgames
@@ -360,9 +467,16 @@ def board_game_cafe(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if path == "/login":
             # POST /login
             return login(event)
+        if path == "/menu":
+            # POST /menu
+            return post_menu_item(event)
     if method == "DELETE":
         if path.startswith("/boardgames/"):
             # DELETE /boardgames/{id}
             board_game_id = int(path.split("/")[-1])
             return delete_board_game(board_game_id)
+        if path.startswith("/menu/"):
+            # DELETE /menu/{id}
+            menu_item_id = int(path.split("/")[-1])
+            return delete_menu_item(menu_item_id)
     return make_response(405, {"error": "Method not allowed"})
