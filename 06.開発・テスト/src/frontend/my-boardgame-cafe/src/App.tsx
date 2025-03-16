@@ -4,7 +4,7 @@ import {
   Route,
   Routes,
   Navigate,
-  useParams,
+  useLocation,
 } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import { Container } from '@mui/material';
@@ -18,6 +18,8 @@ import BoardGameEdit from './components/BoardGameEdit';
 import BoardGameAdd from './components/BoardGameAdd';
 import TopPage from './components/TopPage';
 import MenuList from './components/MenuList';
+import MenuAdd from './components/MenuAdd';
+import MenuEdit from './components/MenuEdit';
 import { darkTheme, lightTheme } from './theme';
 import { BoardGameProvider } from './contexts/BoardGameContext';
 import { MenuProvider } from './contexts/MenuContext';
@@ -126,8 +128,38 @@ const App: React.FC = () => {
             setIsAdmin={setIsAdmin}
             label={'メニュー'}
           />
-          <MenuList />
+          <MenuList isAdmin={isAdmin} />
         </>
+      ),
+    },
+    {
+      path: '/menu/new',
+      element: isAdmin ? (
+        <>
+          <Header
+            toggleTheme={toggleTheme}
+            setIsAdmin={setIsAdmin}
+            label={'メニュー項目追加'}
+          />
+          <MenuAdd />
+        </>
+      ) : (
+        <RequireAuth />
+      ),
+    },
+    {
+      path: '/menu/:id/edit',
+      element: isAdmin ? (
+        <>
+          <Header
+            toggleTheme={toggleTheme}
+            setIsAdmin={setIsAdmin}
+            label={'メニュー項目編集'}
+          />
+          <MenuEdit />
+        </>
+      ) : (
+        <RequireAuth />
       ),
     },
   ];
@@ -157,8 +189,8 @@ const App: React.FC = () => {
 };
 
 const RequireAuth: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  return <Navigate to="/login" state={{ from: `/boardgames/${id}/edit` }} />;
+  const location = useLocation();
+  return <Navigate to="/login" state={{ from: location.pathname }} />;
 };
 
 export default App;

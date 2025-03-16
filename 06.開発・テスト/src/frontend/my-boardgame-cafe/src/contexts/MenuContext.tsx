@@ -110,3 +110,100 @@ export const fetchMenuItems = async (dispatch: React.Dispatch<MenuAction>) => {
     });
   }
 };
+
+export const fetchMenuItem = async (
+  dispatch: React.Dispatch<MenuAction>,
+  id: number
+) => {
+  dispatch({ type: 'FETCH_MENU_START' });
+  const apiEndpoint = import.meta.env.VITE_API_ENDPOINT;
+  const authHeader = localStorage.getItem('authHeader') || '';
+  
+  try {
+    const response = await fetch(`${apiEndpoint}/menu/${id}`, {
+      headers: {
+        'x-api-key': import.meta.env.VITE_API_KEY,
+        'Authorization': authHeader,
+      },
+      mode: 'cors',
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch menu item');
+    }
+    
+    const data = await response.json();
+    dispatch({ type: 'FETCH_MENU_SUCCESS', payload: [data] });
+    return data;
+  } catch (error) {
+    dispatch({
+      type: 'FETCH_MENU_ERROR',
+      payload: error instanceof Error ? error.message : 'An unknown error occurred',
+    });
+    throw error;
+  }
+};
+
+export const addMenuItem = async (
+  dispatch: React.Dispatch<MenuAction>,
+  newItem: Omit<MenuItem, 'id'>
+) => {
+  const apiEndpoint = import.meta.env.VITE_API_ENDPOINT;
+  const authHeader = localStorage.getItem('authHeader') || '';
+  
+  try {
+    const response = await fetch(`${apiEndpoint}/menu`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': import.meta.env.VITE_API_KEY,
+        'Authorization': authHeader,
+      },
+      mode: 'cors',
+      body: JSON.stringify(newItem),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to add menu item');
+    }
+    
+    const addedItem = await response.json();
+    dispatch({ type: 'ADD_MENU_ITEM', payload: addedItem });
+    return addedItem;
+  } catch (error) {
+    console.error('Error adding new menu item:', error);
+    throw error;
+  }
+};
+
+export const updateMenuItem = async (
+  dispatch: React.Dispatch<MenuAction>,
+  updatedItem: Partial<MenuItem> & { id: number }
+) => {
+  const apiEndpoint = import.meta.env.VITE_API_ENDPOINT;
+  const authHeader = localStorage.getItem('authHeader') || '';
+  
+  try {
+    const response = await fetch(`${apiEndpoint}/menu/${updatedItem.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': import.meta.env.VITE_API_KEY,
+        'Authorization': authHeader,
+      },
+      mode: 'cors',
+      body: JSON.stringify(updatedItem),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to update menu item');
+    }
+    
+    const updatedData = await response.json();
+    dispatch({ type: 'UPDATE_MENU_ITEM', payload: updatedData });
+    return updatedData;
+  } catch (error) {
+    console.error('Error updating menu item:', error);
+    throw error;
+  }
+};

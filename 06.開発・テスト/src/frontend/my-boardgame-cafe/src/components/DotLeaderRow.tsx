@@ -61,7 +61,7 @@ const DotLeaderRow: React.FC<DotLeaderRowProps> = ({
             flexShrink: 2,
           }}
         >
-          {'・'.repeat(dotCount)}
+          {'⋯'.repeat(dotCount)}
         </span>
         <span
           style={{
