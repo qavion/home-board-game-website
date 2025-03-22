@@ -3,6 +3,140 @@
 * 画像データには ストレージの S3 を利用する
 * メタデータには noSQLの DynamoDB を利用する
 
+## オーダー機能のデータ
+
+オーダー機能のために以下の3つのDynamoDBテーブルを追加
+
+### 1. オーダーテーブル (Orders)
+
+Amazon DynamoDB に以下の形式で格納します。
+
+#### JSON形式での例と説明
+
+```jsonc
+{
+    "order_id": "550e8400-e29b-41d4-a716-446655440000", // オーダーID [パーティションキー] (UUID形式)
+    "created_at": "2025-03-22T14:30:45.123Z", // 作成日時 [ソートキー]
+    "table_number": 5, // テーブル番号
+    "session_id": "d290f1ee-6c54-4b01-90e6-d701748f0851", // テーブルセッションID
+    "status": "PENDING", // ステータス (PENDING, PROCESSING, COMPLETED, CANCELED)
+    "items": [
+        {
+            "id": 1, // メニューアイテムID
+            "name": "希望の雫", // 商品名
+            "quantity": 2, // 数量
+            "price": 300, // 単価
+            "notes": "氷なし" // 特記事項
+        },
+        {
+            "id": 2,
+            "name": "カップ麺",
+            "quantity": 1,
+            "price": 300,
+            "notes": ""
+        }
+    ],
+    "total_price": 900, // 合計金額
+    "customer_notes": "テーブルの奥に持ってきてください", // 全体の特記事項
+    "updated_at": "2025-03-22T14:35:12.456Z" // 最終更新日時
+}
+```
+
+#### DynamoDB JSON 形式
+
+```json
+{
+  "order_id": { "S": "550e8400-e29b-41d4-a716-446655440000" },
+  "created_at": { "S": "2025-03-22T14:30:45.123Z" },
+  "table_number": { "N": "5" },
+  "session_id": { "S": "d290f1ee-6c54-4b01-90e6-d701748f0851" },
+  "status": { "S": "PENDING" },
+  "items": { 
+    "L": [
+      { 
+        "M": {
+          "id": { "N": "1" },
+          "name": { "S": "希望の雫" },
+          "quantity": { "N": "2" },
+          "price": { "N": "300" },
+          "notes": { "S": "氷なし" }
+        } 
+      },
+      { 
+        "M": {
+          "id": { "N": "2" },
+          "name": { "S": "カップ麺" },
+          "quantity": { "N": "1" },
+          "price": { "N": "300" },
+          "notes": { "S": "" }
+        } 
+      }
+    ] 
+  },
+  "total_price": { "N": "900" },
+  "customer_notes": { "S": "テーブルの奥に持ってきてください" },
+  "updated_at": { "S": "2025-03-22T14:35:12.456Z" }
+}
+```
+
+### 2. テーブルセッションテーブル (TableSessions)
+
+Amazon DynamoDB に以下の形式で格納します。
+
+#### JSON形式での例と説明
+
+```jsonc
+{
+    "table_number": 5, // テーブル番号 [パーティションキー]
+    "session_id": "d290f1ee-6c54-4b01-90e6-d701748f0851", // セッションID (UUID形式)
+    "status": "OCCUPIED", // ステータス (AVAILABLE, OCCUPIED)
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", // アクセストークン
+    "created_at": "2025-03-22T14:00:30.123Z", // セッション開始日時
+    "last_activity": "2025-03-22T15:45:22.789Z", // 最終アクティビティ日時
+    "expiration_time": "2025-03-22T17:00:30.123Z" // セッション有効期限
+}
+```
+
+#### DynamoDB JSON 形式
+
+```json
+{
+  "table_number": { "N": "5" },
+  "session_id": { "S": "d290f1ee-6c54-4b01-90e6-d701748f0851" },
+  "status": { "S": "OCCUPIED" },
+  "access_token": { "S": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+  "created_at": { "S": "2025-03-22T14:00:30.123Z" },
+  "last_activity": { "S": "2025-03-22T15:45:22.789Z" },
+  "expiration_time": { "S": "2025-03-22T17:00:30.123Z" }
+}
+```
+
+### 3. スロットリング用テーブル (RateLimits) (オプション)
+
+リクエスト頻度制限のために使用します。TTL機能を活用して自動的に古いレコードを削除します。
+
+#### JSON形式での例と説明
+
+```jsonc
+{
+    "identifier": "table_5", // 識別子 [パーティションキー] (テーブル番号)
+    "timestamp": "2025-03-22T14:30:45.123Z", // タイムスタンプ [ソートキー]
+    "request_type": "create_order", // リクエスト種別
+    "expiration": 1743179445 // TTL値 (エポック秒) - 自動削除用
+}
+```
+
+#### DynamoDB JSON 形式
+
+```json
+{
+  "identifier": { "S": "table_5" },
+  "timestamp": { "S": "2025-03-22T14:30:45.123Z" },
+  "request_type": { "S": "create_order" },
+  "expiration": { "N": "1743179445" }
+}
+```
+
 ## ボードゲーム画像データ
 
 Amazon S3 に格納する。
